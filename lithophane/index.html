@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+The MIT License
+
+Copyright 2015 Mark Durbin.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+-->
+<html>
+    <head>
+        <title>3DP Rocks - Lithophane generator</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="css/style.css"> 
+        <script src="js/three/three.min.js"></script>
+        <script src="js/three/controls/NormalControls.js"></script>
+        <script src="js/FileSaver.js"></script>
+        <script src="js/main.js"></script>
+    </head>
+    <body onload="initPage();">  
+        <div id="inputs">
+            <img id="logo" src="images/logo.png" alt="Image to Lithophane">
+            <p id="miximumSizePrompt">Max Size (MM): <input id="miximumSize" type="text" value="100" onchange="updateValues(event);"> </p>
+            <p id="thicknessPrompt">Thickness (MM): <input id="thickness" type="text"  value="6.4" onchange="updateValues(event);"></p>
+            <p id="borderThickPrompt">Border (MM): <input id="borderThick" type="text" value="1.6" onchange="updateValues(event);"><br></p>
+            <p id="minLayerPrompt">Thinnest layer (MM): <input id="minLayer" type="text" value="0.3" onchange="updateValues(event);"></p>
+            <p id="vectorsPerPixelPrompt">Vectors per Pixel: <input id="vectorsPerPixel" type="text" value="2" onchange="updateValues(event);"></p>
+            <p id="baseDepthPrompt">Base/Stand depth: <input id="baseDepth" type="text" value="0" onchange="updateValues(event);"></p>
+            <canvas id="outputcanvas" > </canvas>
+            <progress id="progressBar" max="100" value="0" style="visibility:hidden" ></progress>
+            <p id="progressState" > </p>
+        </div>
+        <div id="threedcanvas"> </div>  
+        <div id="droptargetbg"><br><br>Drop images here.<br>Then click image to convert and download<br>Chrome, Firefox and I.E. 10+ browsers only ATM, sorry...</div>    
+    	<div id="droptarget"></div>    
+    </body>
+</html>
