@@ -49,6 +49,7 @@ var borderThicknessInMM=3;
 var minThicknessInMM=0.3;
 var vertexPixelRatio=2;
 var baseDepth=0;
+var reFlip=false; // I know, double negative, but flipped is "normal" in this case, it's better than dontFlip.
 
 var borderPixels=vertexPixelRatio*borderThicknessInMM;
 var maxOutputWidth=maxOutputDimensionInMM-borderThicknessInMM*2;
@@ -81,7 +82,8 @@ function updateValues(event) {
     borderThicknessInMM=getValue('borderThick',borderThicknessInMM,0.4,maxOutputDimensionInMM/2);
     minThicknessInMM=getValue('minLayer',minThicknessInMM,0.1,actualThicknessInMM);
     vertexPixelRatio=getValue('vectorsPerPixel',vertexPixelRatio,1,5);
-    baseDepth=getValue('baseDepth',baseDepth,0,50);
+    baseDepth=getValue('baseDepth',baseDepth,-50,50);
+    reFlip=document.getElementById('reFlip').checked;
     
     borderPixels=vertexPixelRatio*borderThicknessInMM;
     maxOutputWidth=maxOutputDimensionInMM-borderThicknessInMM*2; 
@@ -283,7 +285,7 @@ function processVectors(verts, heightData, width, height) {
     verts.length=height*width;
     for ( i = 0; i <= height; i ++ ) {
         for ( j = 0; j <= width; j ++ ) {
-            verts[index]=new THREE.Vector3(widthPixels-j,heightPixels-i, 
+            verts[index]=new THREE.Vector3(reFlip?j:widthPixels-j,heightPixels-i, 
                 minThicknessInMM+heightData[index]*zScale*vertexPixelRatio);
             index++;
         }
@@ -453,10 +455,16 @@ function addBackBox(toGeometry,width,height) {
     toGeometry.applyMatrix( new THREE.Matrix4().makeRotationY(Math.PI)); // flip it over;
 
     if (baseDepth!==0) {
-        var lithoBase=new THREE.CubeGeometry(pixelWidth,baseDepth*vertexPixelRatio,borderThicknessInMM*vertexPixelRatio);
-        lithoBase.applyMatrix( new THREE.Matrix4().makeRotationX(Math.PI/2)); 
-        lithoBase.applyMatrix( new THREE.Matrix4().makeTranslation(0,pixelHeight/2-(borderThicknessInMM/2)*vertexPixelRatio,(baseDepth*vertexPixelRatio)/2)); 
+        var lithoBase=new THREE.CubeGeometry(pixelWidth,borderThicknessInMM*vertexPixelRatio,Math.abs(baseDepth)*vertexPixelRatio);
+        lithoBase.applyMatrix( new THREE.Matrix4().makeTranslation(0,0-pixelHeight/2,(baseDepth*vertexPixelRatio)/2)); 
+        if (baseDepth<0) {
+            lithoBase.applyMatrix( new THREE.Matrix4().makeTranslation(0,borderThicknessInMM*0.5*vertexPixelRatio,(actualThicknessInMM*vertexPixelRatio))); 
+        }
         toGeometry.merge(lithoBase);
+    }
+    if (baseDepth!==0) {
+        toGeometry.applyMatrix( new THREE.Matrix4().makeRotationX(Math.PI/2)); 
+        toGeometry.applyMatrix( new THREE.Matrix4().makeTranslation(0,0,pixelHeight/2)); 
     }
     
 }
@@ -483,12 +491,20 @@ function setUp3DScene(lithoMesh,width,height) {
         pointLight.position.set(3000, -4000, 3500);
         scene.add(pointLight);
         
-        var material = new THREE.MeshPhongMaterial({color:0x001040,specular: 0x006080,shininess: 10 });
+        var material = new THREE.MeshPhongMaterial({color:0x001040,specular: 0x006080,shininess: 10, side:THREE.DoubleSide });
 
         var lithoPart = new THREE.Mesh( lithoMesh, material );
         scene.add(lithoPart);
         
-        camera.position.z = width*1.6;
+        if (baseDepth!==0) {
+            camera.position.x = 0;
+            camera.position.y = 0-width*1.5;
+            camera.position.z = width*1;
+        } else {
+            camera.position.x = 0;
+            camera.position.y = 0;
+            camera.position.z = width*1.6;
+        }
         
     } catch (e) {
         console(e.message);
