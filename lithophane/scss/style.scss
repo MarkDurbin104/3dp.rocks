@@ -23,13 +23,19 @@ THE SOFTWARE.
 *****************************************************************************/
 
 $headingColour:#000;
-$headingSize:32px;
-$headingHeight:20px;
+$headingSize:28px;
 $outputCanvasWidth: 320px;
+$logoWidth:32px;
+$logoHeight:40px;
+$headingTop:5px;
+$headingLeft:$logoWidth + 10;
+$headingWidth:$outputCanvasWidth - logoWidth;
+$headingHeight:$logoHeight;
 $outputCanvasHeight: 240px; 
 $topSectionHeight: 511px;
 $overallWidth:1024px; 
 $leftMargin:10px;
+$headingLeftMargin:10px + 40;
 $rightMargin:10px;
 $topMargin:10px;
 $dropMargin:10px;
@@ -48,16 +54,21 @@ $progressBorder:0;
 $progressHeight:18px;
 $progressWidth:$outputCanvasWidth + 1;
 $progressBRadius:9px;
+
 body {
         font-family: "Arial";
 }
 #logo {
     height:10;
 }
-h1 {
+#heading {
+    position: absolute;
+    left: $headingLeft;
+    top: $headingTop;
+    width:$headingWidth;
+    height:$headingHeight;
     font-size: $headingSize;
     color: $headingColour;
-    height:$headingHeight;
     text-spacing: 1px;
 }
 #outputcanvas { 
@@ -84,6 +95,17 @@ h1 {
     border-color: black;
 }
 #droptargetbg {
+    position: absolute;
+    left: $leftMargin;
+    top: $dropTop;
+    width: $dropWidth;
+    min-height: $dropMinHeight;
+    text-align: center;
+    font-size: $headingSize;
+    color: $headingColour;
+
+}
+#droptargetaltbg {
     position: absolute;
     left: $leftMargin;
     top: $dropTop;

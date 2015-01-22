@@ -34,22 +34,28 @@ THE SOFTWARE.
         <script src="js/FileSaver.js"></script>
         <script src="js/main.js"></script>
     </head>
-    <body onload="initPage();">  
+    <body>  
         <div id="inputs">
             <img id="logo" src="images/logo.png" alt="Image to Lithophane">
-            <p id="miximumSizePrompt">Max Size (MM): <input id="miximumSize" type="text" value="100" onchange="updateValues(event);"> </p>
-            <p id="thicknessPrompt">Thickness (MM): <input id="thickness" type="text"  value="6.4" onchange="updateValues(event);"></p>
-            <p id="borderThickPrompt">Border (MM): <input id="borderThick" type="text" value="1.6" onchange="updateValues(event);"><br></p>
-            <p id="minLayerPrompt">Thinnest layer (MM): <input id="minLayer" type="text" value="0.3" onchange="updateValues(event);"></p>
-            <p id="vectorsPerPixelPrompt">Vectors per Pixel: <input id="vectorsPerPixel" type="text" value="2" onchange="updateValues(event);"></p>
-            <p id="baseDepthPrompt">Base/Stand depth: <input id="baseDepth" type="text" value="0" onchange="updateValues(event);"></p>
-            <p id="reFlipPrompt">Don't Flip X Axis: <input id="reFlip" type="checkbox" onchange="updateValues(event);"></p>
-            <canvas id="outputcanvas" > </canvas>
-            <progress id="progressBar" max="100" value="0" style="visibility:hidden" ></progress>
-            <p id="progressState" > </p>
+            <div id="heading">Image to Lithophane</div>
+            <p id="miximumSizePrompt"     >Max Size (MM):       <input id="miximumSize"     type="text"     value="100" onchange="lithophane.updateValues(event);" title="1 to 1000"> </p>
+            <p id="thicknessPrompt"       >Thickness (MM):      <input id="thickness"       type="text"     value="6.4" onchange="lithophane.updateValues(event);" title="1 to 100"> </p>
+            <p id="borderThickPrompt"     >Border (MM):         <input id="borderThick"     type="text"     value="1.6" onchange="lithophane.updateValues(event);" title="0 to Max Size"> </p>
+            <p id="minLayerPrompt"        >Thinnest layer (MM): <input id="minLayer"        type="text"     value="0.3" onchange="lithophane.updateValues(event);" title="0.1 to Thickness"> </p>
+            <p id="vectorsPerPixelPrompt" >Vectors per Pixel:   <input id="vectorsPerPixel" type="text"     value="2"   onchange="lithophane.updateValues(event);" title="1 to 5"> </p>
+            <p id="baseDepthPrompt"       >Base/Stand depth:    <input id="baseDepth"       type="text"     value="0"   onchange="lithophane.updateValues(event);" title="-50 to 50"> </p>
+            <p id="reFlipPrompt"          >Don't Flip X Axis:   <input id="reFlip"          type="checkbox"             onchange="lithophane.updateValues(event);"> </p>
+            <canvas   id="outputcanvas"  > </canvas>
+            <progress id="progressBar"   max="100" value="0" style="visibility:hidden" ></progress>
+            <p        id="progressState" > </p>
         </div>
-        <div id="threedcanvas"> </div>  
-        <div id="droptargetbg"><br><br>Drop images here.<br>Then click image to convert and download<br>Chrome, Firefox and I.E. 10+ browsers only ATM, sorry...</div>    
-    	<div id="droptarget"></div>    
+        <div id="threedcanvas"    > </div>  
+        <div id="droptargetbg"    ><br><br>Drop images here.<br>Then click image to convert and download<br>Chrome, Firefox and I.E. 10+ browsers only ATM, sorry...</div>    
+        <div id="droptargetaltbg" style="visibility:hidden"><br><br>click image<br>to convert<br>and download</div>
+    	<div id="droptarget"      ></div>    
+        <script>
+            var lithophane=new LITHO.Lithophane();
+            lithophane.initPage();
+        </script>
     </body>
 </html>
