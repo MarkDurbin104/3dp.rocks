@@ -30,12 +30,14 @@ Binary STL output from example by:
 Paul Kaplan https://gist.github.com/paulkaplan
 
 Class Lithophane {
-    public  initPage        Main Initialisation method - entry point
-    private getValue        Worker for updateValues gets individual params
-    public  updateValues    Take values from UI and apply range checking
-    private setupDragNDrop  Setup panel for drag and drop operations
-    private setProgress     Update the progress bar and status indicator
-    private previewFile     Load the preview image into the drop panel           
+    public  initPage         Main Initialisation method - entry point
+    private getValue         Worker for updateValues gets individual params
+    public  updateValues     Take values from UI and apply range checking
+    private setupDragNDrop   Setup panel for drag and drop operations
+    private setProgress      Update the progress bar and status indicator
+    private previewFile      Load the preview image into the drop panel           
+    public  createHeightMesh Go through each of the processing steps updating 
+                             the progress bar and allowing the UI to refresh
 }   
 Class Scene3D {
     public  init3D          Setup the 3D scene (called for each new model)
@@ -48,9 +50,7 @@ Class LithoBox {
     private processVectors   Create vectors of 2D points from height map
     private processFaces     Create Face Trangles 
     private processUVs       Create UV mapping for material visualisation
-    public  createHeightMesh Go through each of the processing steps updating 
-                             the progress bar and allowing the UI to refresh
-    private addBackBox       Add base , centre and set exact size
+    private addBaseSizePos   Add base , set exact size and centre
 }
 Class STLGenerator {
     public  generateSTL      Create a String containing an ASCII STL blob
@@ -58,18 +58,38 @@ Class STLGenerator {
     public  saveTxtSTL       Call SaveAs with an ASCII STL Blob
     public  saveBinSTL       Call SaveAs with an Binary STL Blob
 }
+*****************************************************************************
+    // Copy this section into you html page and modify to suit
+    // or uncomment here and make it match your html
 
-Additional disclaimer - for the code style gurus:
-_______________________________________________________________________________
-Although I'm not new to programming, this is my first venture into HTML5 & 
-JavaScript or should I say ECMAScript5, there appears to be 300 ways of 
-declaring an object I've tried to follow the style set in Three.js, although I 
-couldn't follow it exactly.  I'm looking forward to the Types & Classes in 
-ECMA Script 6, when that comes, I'll probably revisit this code and make it more 
-maintainable with less JavaScript 5 percularities :(
+    // LITHO_StatusMessages and LITHO_InputRanges must be defined here
+    // or before including main.js in the HTML file
+    //<script>
+        var LITHO_StatusMessages = {
+                loading:     'Loading...'                   ,
+                s1Processing:'2D processing...'             ,
+                vProcessing: 'Processing Vectors...'        ,
+                fProcessing: 'Processing Faces...'          ,
+                sProcessing: 'Processing Surface...'        ,
+                cvNormals:   'Computing Vertex Normals...'  ,
+                cfNormals:   'Computing Face Normals...'    ,
+                aScene:      'Adding to scene...'           ,
+                createSTL:   'Creating STL file...'         ,
+                download:    'Downloading...'
+        };
+        var LITHO_InputRanges = {
+            maximumSize:     {name:'miximumSize'    , lower:1   , upper:1000  },
+            thickness:       {name:'thickness'      , lower:1   , upper:100   },
+            borderThick:     {name:'borderThick'    , lower:0   , upper:50    },
+            minLayer:        {name:'minLayer'       , lower:0.1 , upper:10    },
+            vectorsPerPixel: {name:'vectorsPerPixel', lower:1   , upper:5     },
+            baseDepth:       {name:'baseDepth'      , lower:-50 , upper:50    },
+            reFlip:          {name:'reFlip'         , lower:true, upper:false }
+        };
+    //</script>
+
 *****************************************************************************/
-
-var LITHO = { REVISION: '6' };
+var LITHO = { REVISION: '7' };
 // browserify support
 if ( typeof module === 'object' ) {
     module.exports = LITHO;
@@ -81,11 +101,15 @@ if ( typeof module === 'object' ) {
  * 
  */
 LITHO.Lithophane = function () {
-    this.imageMap = new LITHO.ImageMap(this);
-    this.scene3d = new LITHO.Scene3D(this);
-    this.lithoBox = new LITHO.LithoBox(this);
-    this.stlGenerator = new LITHO.STLGenerator(this);
+    this.scene3d = new LITHO.Scene3D();
+    // Add references to HTML elements now that they have been set up
     this.droptarget = document.getElementById('droptarget');
+    this.outputCanvas = document.getElementById("outputcanvas");
+    this.droptargetaltbg = document.getElementById('droptargetaltbg');
+    this.droptargetbg = document.getElementById('droptargetbg');
+    this.progressBar = document.getElementById('progressBar');
+    this.progressState = document.getElementById('progressState');
+    this.threeDCanvas = document.getElementById('threedcanvas');
 };
 LITHO.Lithophane.prototype = {
     
@@ -100,34 +124,26 @@ LITHO.Lithophane.prototype = {
         'image/gif': true,
         'image/bmp': true
     },
-    imageFileName : "testLithophane", // overwritten by the original image name
-    currentImage : undefined,
-    updatingScene : false, // used to stop render code during a change of scene
     
     // some defalt values - these are overridden by the ones in the HTML file
     // by an initial call to UpdateValues SO modify them in the HTML, not here!
-    maxOutputDimensionInMM : 100,
-    actualThicknessInMM : 6,
-    borderThicknessInMM : 3,
-    minThicknessInMM : 0.3,
-    vertexPixelRatio : 2,
+    maxOutputDimensionInMM : 0,
+    actualThicknessInMM : 0,
+    borderThicknessInMM : 0,
+    minThicknessInMM : 0,
+    vertexPixelRatio : 0,
     baseDepth : 0,
     reFlip : false, 
     
     // values calculated from parameters for ease of reading
-    borderPixels : this.vertexPixelRatio * this.borderThicknessInMM,
-    maxOutputWidth : this.maxOutputDimensionInMM - this.borderThicknessInMM * 2,
-    maxOutputDepth : this.maxOutputDimensionInMM - this.borderThicknessInMM * 2,
-    maxOutputHeight : this.actualThicknessInMM - this.minThicknessInMM,
-    HeightInMM:this.maxOutputDimensionInMM,
-    WidthInMM:this.maxOutputDimensionInMM,
-    ThickInMM:this.actualThicknessInMM,
-    zScale : this.maxOutputHeight / 255,
-    
-    lithoGeometry : undefined,
-    height_data : undefined,
-    image_width : 0,
-    image_height : 0,
+    borderPixels:  0,
+    maxOutputWidth : 0,
+    maxOutputDepth : 0,
+    maxOutputHeight : 0,
+    HeightInMM:0,
+    WidthInMM:0,
+    ThickInMM:0,
+    zScale : 0,
     
 /*******************************************************************************
  * 
@@ -137,22 +153,20 @@ LITHO.Lithophane.prototype = {
     initPage:function () {
         this.setupDragNDrop();
         this.updateValues(undefined);
-        this.scene3d.init3D(true);
+        this.scene3d.init3D(this.threeDCanvas,this.vertexPixelRatio,true);
     },
     
 /*******************************************************************************
  * 
  *  private getValue        Worker for updateValues gets individual params
- * @param {type} fieldName
- * @param {type} defaultVal
- * @param {type} minVal
- * @param {type} maxVal
- * @returns {LITHO.Lithophane.prototype.getValue.value}
+ * @param {LITHO_InputRanges} inputRange - object from LITHO_InputRanges var
+ * @param {Number} defaultVal - default value for out of range input
+ * @returns {Number} value if in range, otherwise default value passed
  */
-    getValue:function (fieldName, defaultVal, minVal, maxVal) {
-        var element = document.getElementById(fieldName);
+    getValue:function (inputRange, defaultVal) {
+        var element = document.getElementById(inputRange.name);
         var value = parseFloat(element.value);
-        if ((value >= minVal) && (value <= maxVal)) {
+        if ((value >= inputRange.lower) && (value <= inputRange.upper)) {
             element.className = '';
             return value;
         }
@@ -162,25 +176,27 @@ LITHO.Lithophane.prototype = {
 /*******************************************************************************
  * 
  *  public  updateValues    Take values from UI and apply range checking
- * @param Event event - click event - unused
+ * @param {Event} event - click event - unused
  * @returns {undefined}
  */
     updateValues:function (event) {
-        this.maxOutputDimensionInMM = this.getValue('miximumSize', this.maxOutputDimensionInMM, 1, 1000);
-        this.actualThicknessInMM = this.getValue('thickness', this.actualThicknessInMM, 1, 100);
-        this.borderThicknessInMM = this.getValue('borderThick', this.borderThicknessInMM, 0, this.maxOutputDimensionInMM / 2);
-        this.minThicknessInMM = this.getValue('minLayer', this.minThicknessInMM, 0.1, this.actualThicknessInMM);
-        this.vertexPixelRatio = this.getValue('vectorsPerPixel', this.vertexPixelRatio, 1, 5);
-        this.baseDepth = this.getValue('baseDepth', this.baseDepth, -50, 50);
-        this.reFlip = document.getElementById('reFlip').checked;
+        this.maxOutputDimensionInMM = this.getValue(LITHO_InputRanges.maximumSize     , this.maxOutputDimensionInMM   );
+        this.actualThicknessInMM    = this.getValue(LITHO_InputRanges.thickness       , this.actualThicknessInMM      );
+        this.borderThicknessInMM    = this.getValue(LITHO_InputRanges.borderThick     , this.borderThicknessInMM      );
+        this.minThicknessInMM       = this.getValue(LITHO_InputRanges.minLayer        , this.minThicknessInMM         );
+        this.vertexPixelRatio       = this.getValue(LITHO_InputRanges.vectorsPerPixel , this.vertexPixelRatio         );
+        this.baseDepth              = this.getValue(LITHO_InputRanges.baseDepth       , this.baseDepth                );
+        this.reFlip                 = document.getElementById(LITHO_InputRanges.reFlip.name).checked;
         
         // recalculate basic measurements
         this.borderPixels = this.vertexPixelRatio * this.borderThicknessInMM;
         this.maxOutputWidth = this.maxOutputDimensionInMM - this.borderThicknessInMM * 2;
         this.maxOutputDepth = this.maxOutputDimensionInMM - this.borderThicknessInMM * 2;
         this.maxOutputHeight = this.actualThicknessInMM - this.minThicknessInMM;
+        this.HeightInMM = this.maxOutputDimensionInMM,
+        this.WidthInMM = this.maxOutputDimensionInMM,
+        this.ThickInMM = this.actualThicknessInMM;
         this.zScale = this.maxOutputHeight / 255;
-        this.ThickInMM=this.actualThicknessInMM;
     },
 /*******************************************************************************
  * 
@@ -211,35 +227,44 @@ LITHO.Lithophane.prototype = {
 /*******************************************************************************
  * 
  *  private setProgress     Update the progress bar and status indicator
- * @param Number level - 0-100
- * @param String state - "loading..." see createHeightMesh() for examples
+ * @param {Number} level - 0-100
+ * @param {String} state - "loading..." see createHeightMesh() for examples
  * @returns {undefined}
  */
     setProgress:function (level, state) {
-        var progressBar = document.getElementById('progressBar');
-        var progressState = document.getElementById('progressState');
-        progressBar.style.visibility = level === 0 ? "hidden" : "visible";
-        progressBar.value = level;
-        progressState.innerHTML = state;
+        this.progressBar.style.visibility = level === 0 ? "hidden" : "visible";
+        this.progressBar.value = level;
+        this.progressState.innerHTML = state;
     },
 /*******************************************************************************
  * 
  * private previewFile     Load the preview image into the drop panel           
- * @param {type} file - image file to load and show the image in the preview
+ * @param {File} file - image file to load and show the image in the preview
  * @returns {undefined}]
  */
     previewFile:function (file) {
         var reader = new FileReader();
-        reader.parentObject=this; // needed for callbacks
+        var that=this; // needed for callbacks
         function onImageClicked(event) {
-            reader.parentObject.currentImage = event.target; // the image that was clicked
-            reader.parentObject.lithoBox.createHeightMesh();
+            var image=event.target; // the image that was clicked
+            if (image.naturalWidth > image.naturalHeight) {
+                that.xyScale = (that.maxOutputWidth / image.naturalWidth) * that.vertexPixelRatio;
+                that.WidthInMM=that.maxOutputDimensionInMM;
+                that.HeightInMM=that.maxOutputDimensionInMM/(image.naturalWidth/image.naturalHeight);
+            } else {
+                that.xyScale = (that.maxOutputDepth / image.naturalHeight) * that.vertexPixelRatio;
+                that.HeightInMM=that.maxOutputDimensionInMM;
+                that.WidthInMM=that.maxOutputDimensionInMM*(image.naturalWidth/image.naturalHeight);
+            }
+            image.edgeThickness=(that.borderPixels===0)?1:that.borderPixels;
+            that.outputCanvas.width =Math.ceil((image.naturalWidth  * that.xyScale) + (2 * image.edgeThickness));
+            that.outputCanvas.height=Math.ceil((image.naturalHeight * that.xyScale) + (2 * image.edgeThickness));                
+            that.createHeightMesh(image);
         };
         if (this.supported.filereader === true && this.acceptedTypes[file.type] === true) {
             reader.onprogress = function (event) {
                 var level = (event.loaded / event.total * 100);
-                console.log('progress ' + level.toFixed(1) + '%');
-                this.parentObject.setProgress(level, 'loading...');
+                that.setProgress(level,LITHO_StatusMessages.loading);
             };
             reader.onload = function (event) {
                 var image = new Image();
@@ -248,17 +273,101 @@ LITHO.Lithophane.prototype = {
                 image.filename = file.name;
                 if (image.naturalWidth > image.naturalHeight) {
                     image.width = 250;
-                }
-                else {
+                } else {
                     image.height = 250;
                 }
-                this.parentObject.droptarget.appendChild(image);
+                that.droptarget.appendChild(image);
                 // show alternative message once first file has been dropped
-                document.getElementById('droptargetaltbg').style.visibility="visible";
-                document.getElementById('droptargetbg').style.visibility="hidden";
-                this.parentObject.setProgress(0, '');
+                that.droptargetaltbg.style.visibility="visible";
+                that.droptargetbg.style.visibility="hidden";
+                that.setProgress(0, '');
             };
             reader.readAsDataURL(file);
+        }
+    },
+/*******************************************************************************
+ * 
+ *  public  createHeightMesh Go through each of the processing steps updating 
+ *                           the progress bar and allowing the UI to refresh
+ * @param {Canvas} outputCanvas
+ * @param {Image} image
+ * @param {Number} width
+ * @param {Number} height
+ * @returns {undefined}
+ */
+    createHeightMesh: function(image) {
+        var that=this; // if you don't know what "that"'s for you soon will :(
+        var width=this.outputCanvas.width;
+        var height=this.outputCanvas.height;
+        var vpRatio=this.vertexPixelRatio;
+        var stlBin;
+        var heightData;
+        var lithoGeometry;
+        var lithoBox;
+        var stlGenerator;
+        
+        // each of the "DoChunkN()" functions splits up the processing so that the progress bar can update
+        // an approximate position and status is set in each function before a setTimeout call to the next
+        // allowing the UI to update before proceeding
+        // ugly, but hey, what's a person to do...
+        
+        that.scene3d.init3D(that.threeDCanvas,vpRatio,false);
+        that.setProgress(10, LITHO_StatusMessages.s1Processing);
+        setTimeout(doChunk0, 1);
+        function doChunk0() {
+            var imageMap = new LITHO.ImageMap();
+            heightData=imageMap.processImage(that.outputCanvas, image);
+            imageMap=undefined;
+            that.setProgress(20, LITHO_StatusMessages.vProcessing);
+            setTimeout(doChunk1, 1);
+        }
+        function doChunk1() {
+            lithoBox = new LITHO.LithoBox();
+            lithoGeometry = new THREE.Geometry();
+            lithoGeometry.vertices=lithoBox.processVectors(heightData, width, height,that.minThicknessInMM,that.zScale,vpRatio,that.reFlip);
+            heightData=undefined;
+            that.setProgress(30, LITHO_StatusMessages.fProcessing);
+            setTimeout(doChunk2, 1);
+        }
+        function doChunk2() {
+            lithoGeometry.faces=lithoBox.processFaces(width, height);
+            that.setProgress(40, LITHO_StatusMessages.sProcessing);
+            setTimeout(doChunk3, 1);
+        }
+        function doChunk3() {
+            lithoGeometry.faceVertexUvs[0]=lithoBox.processUVs( width, height);
+            that.setProgress(50, LITHO_StatusMessages.cfNormals);
+            setTimeout(doChunk4, 1);
+        }
+        function doChunk4() {
+            lithoGeometry.computeFaceNormals();
+            that.setProgress(60, LITHO_StatusMessages.cvNormals);
+            setTimeout(doChunk5, 1);
+        }
+        function doChunk5() {
+            lithoGeometry.computeVertexNormals();
+            that.setProgress(70, LITHO_StatusMessages.aScene);
+            setTimeout(doChunk6, 1);
+        }
+        function doChunk6() {
+            lithoBox.addBaseSizePos(lithoGeometry, that.WidthInMM, that.HeightInMM, that.ThickInMM ,that.borderThicknessInMM, that.baseDepth,vpRatio);
+            lithoBox=undefined;
+            that.scene3d.setUp3DScene(lithoGeometry, vpRatio);
+            that.setProgress(80, LITHO_StatusMessages.createSTL);
+            setTimeout(doChunk7, 1);
+        }
+        function doChunk7() {
+            stlGenerator = new LITHO.STLGenerator();
+            stlBin = stlGenerator.createBinSTL(lithoGeometry,1/vpRatio);
+            lithoGeometry=undefined;
+            that.setProgress(90, LITHO_StatusMessages.download);
+            setTimeout(doChunk8, 1);
+        }
+        function doChunk8() {
+            stlGenerator.saveBinSTL(stlBin, image.filename);
+            stlGenerator=undefined;
+            stlBin=undefined;
+            that.setProgress(0, '');
         }
     }
 };
@@ -266,10 +375,10 @@ LITHO.Lithophane.prototype = {
 /*******************************************************************************
  * 
  * Class Scene3D 
- * 
+ * @param {Lithophane} parent
+ * @returns {undefined}
  */
-LITHO.Scene3D = function (parent) {
-    this.parentLitho=parent;
+LITHO.Scene3D = function () {
 };
 LITHO.Scene3D.prototype = {
     
@@ -279,20 +388,21 @@ LITHO.Scene3D.prototype = {
     scene : undefined,
     camera : undefined,
     controls : undefined,
+    container: undefined,
 
 /*******************************************************************************
- * 
- *  public  init3D          Setup the 3D scene (called for each new model)
- * @param Boolean createBox - create a dummy lithophane for empty startup scene
+ * public  init3D          Setup the 3D scene (called for each new model)
+ * @param {div} threeDCanvas - the 3D display canvas
+ * @param {Number} vertexPixelRatio
+ * @param {Boolean} createBox - create a dummy lithophane for empty startup scene
  * @returns {undefined}
- */    
-    init3D : function (createBox) {
+ */
+    init3D : function (threeDCanvas,vertexPixelRatio,createBox) {
         var thisobject=this; // needed for call back functions
         function render() {
             thisobject.controls.update();
             requestAnimationFrame(render);
-            if (!thisobject.parentLitho.updatingScene)
-                thisobject.renderer.render(thisobject.scene, thisobject.camera);
+            thisobject.renderer.render(thisobject.scene, thisobject.camera);
         };
         function Resize(e) {
             var width = parseInt(window.getComputedStyle(thisobject.container).width);
@@ -305,50 +415,46 @@ LITHO.Scene3D.prototype = {
         // should get the Canvas Renderer working for other browsers...
         //if ((Detector!==undefined) && (! Detector.webgl) ) Detector.addGetWebGLMessage();
         
-        this.container = document.getElementById('threedcanvas');
+        this.container = threeDCanvas;
         var width = parseInt(window.getComputedStyle(this.container).width);
         var height = parseInt(window.getComputedStyle(this.container).height);
         this.container.innerHTML = "";
-        var aspect = width / height;
-        
-        this.camera = new THREE.PerspectiveCamera(37.5, aspect, 1, 5000);
-        this.controls = new THREE.NormalControls(this.camera, this.container);
         
         this.renderer = new THREE.WebGLRenderer({ antialias: false });
         this.renderer.setClearColor(0xFFFFFF);
         this.renderer.setSize(width, height);
         this.renderer.autoClear = true;
         this.container.appendChild(this.renderer.domElement);
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
+        
+        this.camera = new THREE.PerspectiveCamera(37.5, width / height, 1, 5000);
+        this.controls = new THREE.NormalControls(this.camera, this.container);
+        
         if (createBox) {
-            this.parentLitho.lithoGeometry = new THREE.BoxGeometry(this.parentLitho.maxOutputDimensionInMM * this.parentLitho.vertexPixelRatio, this.parentLitho.maxOutputDimensionInMM * this.parentLitho.vertexPixelRatio, this.parentLitho.maxOutputHeight);
+            var lithoGeometry = new THREE.BoxGeometry(100*vertexPixelRatio,100*vertexPixelRatio,5*vertexPixelRatio);
+            lithoGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 2.5*vertexPixelRatio));
         }
         else {
-            this.parentLitho.lithoGeometry = new THREE.Geometry();
+            var lithoGeometry = new THREE.Geometry();
         }
-        this.parentLitho.lithoGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 5));
-        this.setUp3DScene(this.parentLitho.lithoGeometry, this.parentLitho.maxOutputDimensionInMM * this.parentLitho.vertexPixelRatio, this.parentLitho.maxOutputDimensionInMM * this.parentLitho.vertexPixelRatio);
+        this.setUp3DScene(lithoGeometry, vertexPixelRatio);
         render();
         window.addEventListener('resize', Resize, false);
     },
 /*******************************************************************************
  * 
- *  public  setUp3DScene    Add the model and ground plane into the scene
+ * public  setUp3DScene    Add the model and ground plane into the scene
  * @param {Geometry} lithoMesh - the geometry to add to the scene
- * @param {Number} width - of the lithophane - just used to set camera position
- * @param {Number} height - of the lithophane - unused
+ * @param {Number} vertexPixelRatio
  * @returns {undefined}
  */    
-    setUp3DScene: function(lithoMesh, width, height) {
-        this.parentLitho.updatingScene = true;
+    setUp3DScene: function(lithoMesh,vertexPixelRatio) {
         try {
             this.scene = new THREE.Scene();
             
             var showFloor=true;
             if (showFloor) {
-                var baseWidth = 900;
-                var divisions = Math.floor(baseWidth / (this.parentLitho.vertexPixelRatio * 10)); // 10mm grid
+                var baseWidth = 300*vertexPixelRatio;
+                var divisions = Math.floor(baseWidth / (vertexPixelRatio * 10)); // 10mm grid
                 var groundMaterial = new THREE.MeshPhongMaterial({ color: 0x808080, wireframe: true, shininess: 0 });
                 var groundPlane = new THREE.PlaneGeometry(baseWidth, baseWidth, divisions, divisions);
                 var ground = new THREE.Mesh(groundPlane, groundMaterial);
@@ -385,89 +491,55 @@ LITHO.Scene3D.prototype = {
                 this.scene.add(lithoMeshPart);
             }
             
-            if (this.parentLitho.baseDepth !== 0) {
-                this.camera.position.x = 0;
-                this.camera.position.y = 0 - width * 1.5;
-                this.camera.position.z = width * 1;
-            }
-            else {
-                this.camera.position.x = 0;
-                this.camera.position.y = 0;
-                this.camera.position.z = width * 1.6;
-            }
+            // TODO - Fix to show goemetry in camera better
+            this.camera.position.x = 0;
+            this.camera.position.y = -150*vertexPixelRatio;
+            this.camera.position.z = 150*vertexPixelRatio;
         }
         catch (e) {
             console.log(e.message);
         }
-        this.parentLitho.updatingScene = false;
     }
 };
 
 /*******************************************************************************
- * 
  * Class ImageMap 
- * 
+ * @returns {undefined}
  */
-LITHO.ImageMap = function (parent) {
-    this.parentLitho=parent;
-    this.xyScale=1;
+LITHO.ImageMap = function () {
 };
+
 LITHO.ImageMap.prototype = {
     
     constructor: LITHO.ImageMap,
-    
 /*******************************************************************************
- * 
- *  public  processImage    Do the 2D processing of the clicked image
- * @returns {undefined}
- */    
-    processImage: function() {
-        var image = this.parentLitho.currentImage;
-        if (image.filename !== undefined) {
-            this.parentLitho.imageFileName = image.filename;
-        }
-        else {
-            this.parentLitho.imageFileName = "testLithophane";
-        }
-        
-        //create a canvas to hold our image data while we process it
-        var canvas = document.getElementById("outputcanvas");
-        
-        // make our canvas the same size as the image
-        if (image.naturalWidth > image.naturalHeight) {
-            this.xyScale = (this.parentLitho.maxOutputWidth / image.naturalWidth) * this.parentLitho.vertexPixelRatio;
-            this.parentLitho.WidthInMM=this.parentLitho.maxOutputDimensionInMM;
-            this.parentLitho.HeightInMM=this.parentLitho.maxOutputDimensionInMM/(image.naturalWidth/image.naturalHeight);
-        }
-        else {
-            this.xyScale = (this.parentLitho.maxOutputDepth / image.naturalHeight) * this.parentLitho.vertexPixelRatio;
-            this.parentLitho.HeightInMM=this.parentLitho.maxOutputDimensionInMM;
-            this.parentLitho.WidthInMM=this.parentLitho.maxOutputDimensionInMM*(image.naturalWidth/image.naturalHeight);
-        }
-        
-        var edgeThickness=this.parentLitho.borderPixels;
-        if (edgeThickness===0) edgeThickness=1;
-        
-        canvas.width  = (image.naturalWidth  * this.xyScale) + (2 * edgeThickness);
-        canvas.height = (image.naturalHeight * this.xyScale) + (2 * edgeThickness);
-        
+ * public  processImage         Do the 2D processing of the clicked image
+ * @param {Canvas}              outputCanvas for display of inverted mono image
+ * @param {Image} image         the image to process
+ * @param {Number} xyScale      the scale of the resultant height data
+ * @param {Number} borderPixels number of pixels in the border
+ * @returns {heightData}
+ */
+    processImage: function(outputCanvas, image) {
+
         // we'll need the 2D context to manipulate the data
-        var canvas_context = canvas.getContext("2d");
+        var canvas_context = outputCanvas.getContext("2d");
         canvas_context.beginPath();
         canvas_context.lineWidth = "1";
         canvas_context.fillStyle = "black";
-        canvas_context.rect(0, 0, canvas.width, canvas.height);
+        canvas_context.rect(0, 0, outputCanvas.width, outputCanvas.height);
         canvas_context.fill();
-        canvas_context.drawImage(image, edgeThickness, edgeThickness, canvas.width - 2 * edgeThickness, canvas.height - 2 * edgeThickness); // draw the image on our canvas
+        //fill the canvas black then place the image in the centre leaving black pixels to form the border
+        canvas_context.drawImage(image, image.edgeThickness, image.edgeThickness, outputCanvas.width - 2 * image.edgeThickness, outputCanvas.height - 2 * image.edgeThickness); // draw the image on our canvas
         
         // image_data points to the image metadata including each pixel value
-        var image_data = canvas_context.getImageData(0, 0, canvas.width, canvas.height);
+        var image_data = canvas_context.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
         
         // pixels points to the canvas pixel array, arranged in 4 byte blocks of Red, Green, Blue and Alpha channel
         var pixels = image_data.data;
         var numb_pixels = pixels.length / 4; // the number of pixels to process
         
-        this.parentLitho.height_data = new Uint8Array(numb_pixels); // an array to hold the result data
+        heightData = new Uint8Array(numb_pixels); // an array to hold the result data
         
         var image_pixel_offset = 0; // current image pixel being processed
         for (var height_pixel_index = 0; height_pixel_index < numb_pixels; height_pixel_index++) {
@@ -476,7 +548,7 @@ LITHO.ImageMap.prototype = {
             // create negative monochrome value from red, green and blue values
             var negative_average = 255 - (red_channel * 0.299 + green_channel * 0.587 + blue_channel * 0.114);
             
-            this.parentLitho.height_data[height_pixel_index] = negative_average; // store calue in height array
+            heightData[height_pixel_index] = negative_average; // store calue in height array
 
             // store value back in canvas in all channels for 2D display of negative monochrome image
             pixels[image_pixel_offset] = pixels[image_pixel_offset + 1] = pixels[image_pixel_offset + 2] = negative_average;
@@ -484,9 +556,7 @@ LITHO.ImageMap.prototype = {
         }
         // display modified image
         canvas_context.putImageData(image_data, 0, 0, 0, 0, image_data.width, image_data.height);
-        // create 3D lithophane using height data
-        this.parentLitho.image_width = image_data.width;
-        this.parentLitho.image_height = image_data.height;
+        return (heightData);
     }
 };
 
@@ -505,24 +575,24 @@ LITHO.LithoBox.prototype = {
 /*******************************************************************************
  * 
  *  private processVectors   Create vectors of 2D points from height map
- * @param {type} verts       Geometry.vertices array to process
  * @param {type} heightData  The height data extracted from the image
  * @param {type} width       The width (X)of the height date
  * @param {type} height      the height(Y) of the height data
- * @returns {undefined}
+ * @returns {verts}         Geometry.vertices array to process
  */
-    processVectors: function (verts, heightData, width, height) {
+    processVectors: function (heightData, width, height,minThicknessInMM,zScale,vertexPixelRatio,reFlip) {
         var i, j;
         var index = 0;
         var heightPixels = height;
         var widthPixels = width;
         height--;
         width--;
+        var verts=[];
         verts.length = height * width;
         for (i = 0; i <= height; i++) {
             for (j = 0; j <= width; j++) {
-                var x=this.parentLitho.reFlip ? j : widthPixels - j;
-                var y=heightPixels - i;
+                var x=reFlip ? j : widthPixels - j;
+                var y=heightPixels - i; 
                 // square up edges
                 if (x===2) x--;
                 if (y===2) y--;
@@ -533,7 +603,7 @@ LITHO.LithoBox.prototype = {
                     verts[index] = new THREE.Vector3(x, y, 0);
                 } else {
                     verts[index] = new THREE.Vector3(x, y, 
-                    (this.parentLitho.minThicknessInMM + (heightData[index] * this.parentLitho.zScale)) * this.parentLitho.vertexPixelRatio);
+                    (minThicknessInMM + (heightData[index] * zScale)) * vertexPixelRatio);
                 }
                 index++;
             }
@@ -543,27 +613,28 @@ LITHO.LithoBox.prototype = {
         verts[index++]=new THREE.Vector3(1          ,heightPixels,0);
         verts[index++]=new THREE.Vector3(widthPixels,heightPixels,0);
         verts[index++]=new THREE.Vector3(widthPixels,1           ,0);
+        return verts;
     },
 /*******************************************************************************
  * 
- *  private processFaces     Create Face Trangles 
+ * private processFaces     Create Face Trangles 
  * @param {type} faces       the geometry faces aray to process
  * @param {type} width       The width (X)of the height date
  * @param {type} height      the height(Y) of the height data
  * @returns {undefined}
  */
-    processFaces: function(faces, width, height) {
+    processFaces: function(width, height) {
         var i, j;
         var index = 0;
         var heightPixels = height;
         var widthPixels = width;
-        //var verts=geometry.vertices;
         height--;
         width--;
         var a, b, c, d;
         var yoffset = 0;
         var y1offset = widthPixels;
         index = 0;
+        var faces=[];
         faces.length = height * width * 2;
         for (i = 0; i < height; i++) {
             var xoffset = 0;
@@ -574,8 +645,7 @@ LITHO.LithoBox.prototype = {
                     b = yoffset + x1offset;
                     c = y1offset + x1offset;
                     d = y1offset + xoffset;
-                // add faces and uvs
-                
+                // add faces
                  // special case for bottom left and top right corners
                  // where the triangle's hypotenuse cuts across the corner
                  // rotate the face 90 degrees so that the output
@@ -600,6 +670,7 @@ LITHO.LithoBox.prototype = {
         d = c+1;
         faces[index++] = new THREE.Face3(a, b, d);
         faces[index] = new THREE.Face3(b, c, d);
+        return faces;
     },
 /*******************************************************************************
  * 
@@ -609,7 +680,7 @@ LITHO.LithoBox.prototype = {
  * @param {type} height      the height(Y) of the height data
  * @returns {undefined}
  */
-    processUVs: function(uvs, width, height) {
+    processUVs: function(width, height) {
         var i, j;
         var index = 0;
         var heightPixels = height;
@@ -619,6 +690,7 @@ LITHO.LithoBox.prototype = {
         width--;
         var uva, uvb, uvc, uvd;
         index = 0;
+        var uvs=[];
         uvs.length = height * width * 2;
         for (i = 0; i < height; i++) {
             // UV Array holds values from 0-1
@@ -653,116 +725,61 @@ LITHO.LithoBox.prototype = {
         uvd = new THREE.Vector2(1, 0);
         uvs[index++] = [uva, uvb, uvd];
         uvs[index++] = [uvb.clone(), uvc, uvd.clone()];
+        return uvs;
     },
 /*******************************************************************************
  * 
- *  public  createHeightMesh Go through each of the processing steps updating 
- *                           the progress bar and allowing the UI to refresh
+ *  private addBaseSizePos       Add base , centre and set exact size
+ * @param {Geometry} toGeometry  The geomentry to modify
+ * @param {Number} WidthInMM  - output width in mm
+ * @param {Number} HeightInMM - output height in mm
+ * @param {Number} ThickInMM  - output thickness in mm
+ * @param {Number} borderThicknessInMM - output border in mm
+ * @param {Number} baseDepth - output thickness of base in mm
+ * @param {Number} vertexPixelRatio 
  * @returns {undefined}
  */
-    createHeightMesh: function() {
-        var geometry = new THREE.Geometry();
-        var verts = geometry.vertices;
-        var uvs = geometry.faceVertexUvs[0];
-        var faces = geometry.faces;
-        var stlString;
-        var stlBin;
-        var parent=this;
-        var parentLitho=parent.parentLitho;
-        
-        // each of the "DoChunkN()" functions splits up the processing so that the progress bar can update
-        // an approximate position and status is set in each function before a setTimeout call to the next
-        // allowing the UI to update before proceeding
-        // ugly, but hey, what's a person to do...
-        
-        parentLitho.scene3d.init3D(false);
-        parentLitho.setProgress(10, '2D processing...');
-        setTimeout(doChunk0, 1);
-        function doChunk0() {
-            parentLitho.imageMap.processImage();
-            parentLitho.setProgress(20, 'Processing Vectors...');
-            setTimeout(doChunk1, 1);
-        }
-        function doChunk1() {
-            parent.processVectors(verts, parentLitho.height_data, parentLitho.image_width, parentLitho.image_height);
-            parent.parentLitho.setProgress(30, 'Processing Faces...');
-            setTimeout(doChunk2, 1);
-        }
-        function doChunk2() {
-            parent.processFaces(faces, parentLitho.image_width, parentLitho.image_height);
-            parent.parentLitho.setProgress(50, 'Processing Surface...');
-            setTimeout(doChunk3, 1);
-        }
-        function doChunk3() {
-            parent.processUVs(uvs, parentLitho.image_width, parentLitho.image_height);
-            geometry.computeFaceNormals();
-            geometry.computeVertexNormals();
-            parentLitho.lithoGeometry = geometry;
-            parentLitho.setProgress(75, 'Adding to scene...');
-            setTimeout(doChunk4, 1);
-        }
-        function doChunk4() {
-            parent.addBackBox(parentLitho.lithoGeometry, parentLitho.image_width, parentLitho.image_height);
-            parentLitho.scene3d.setUp3DScene(parentLitho.lithoGeometry, parentLitho.image_width, parentLitho.image_height);
-            parentLitho.setProgress(80, 'Creating STL file...');
-            setTimeout(doChunk5, 1);
-        }
-        function doChunk5() {
-            stlBin = parentLitho.stlGenerator.createBinSTL(parentLitho.lithoGeometry,1/parentLitho.vertexPixelRatio);
-            parentLitho.setProgress(95, 'Downloading...');
-            setTimeout(doChunk6, 1);
-        }
-        function doChunk6() {
-            parentLitho.stlGenerator.saveBinSTL(stlBin, parentLitho.imageFileName);
-            parentLitho.setProgress(0, '');
-        }
-    },
-/*******************************************************************************
- * 
- *  private addBackBox       Add base , centre and set exact size
- * @param {type} toGeometry  The geomentry to modify
- * @param {type} width       The width (X) of the height data
- * @param {type} height      the height(Y) of the height data
- * @returns {undefined}
- */
-    addBackBox: function(toGeometry, width, height) {
-        var pixelWidth = width - 1;
-        var pixelHeight = height - 1;
-
-        // centre mesh
-        toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0-(width + 1) / 2, 0 - (height + 1) / 2, 0));
-
-        // adjust to exact size required - there is always 1 pixel less on the 
+    addBaseSizePos: function(toGeometry, WidthInMM, HeightInMM, ThickInMM ,borderThicknessInMM, baseDepth,vertexPixelRatio) {
+// adjust to exact size required - there is always 1 pixel less on the 
         // width /height due to the vertices being positioned in the middle of each pixel
         toGeometry.computeBoundingBox();
-        var gWidth =(toGeometry.boundingBox.max.x - toGeometry.boundingBox.min.x)/this.parentLitho.vertexPixelRatio;
-        var gHeight=(toGeometry.boundingBox.max.y - toGeometry.boundingBox.min.y)/this.parentLitho.vertexPixelRatio;
-        var gThick =(toGeometry.boundingBox.max.z - toGeometry.boundingBox.min.z)/this.parentLitho.vertexPixelRatio;
-        toGeometry.applyMatrix(new THREE.Matrix4().makeScale(this.parentLitho.WidthInMM/gWidth,this.parentLitho.HeightInMM/gHeight,this.parentLitho.ThickInMM/gThick));
+        var gWidth =(toGeometry.boundingBox.max.x - toGeometry.boundingBox.min.x)/vertexPixelRatio;
+        var gHeight=(toGeometry.boundingBox.max.y - toGeometry.boundingBox.min.y)/vertexPixelRatio;
+        var gThick =(toGeometry.boundingBox.max.z - toGeometry.boundingBox.min.z)/vertexPixelRatio;
+        toGeometry.applyMatrix(new THREE.Matrix4().makeScale(WidthInMM/gWidth,HeightInMM/gHeight,ThickInMM/gThick));
+
+        // centre mesh
+        toGeometry.center();
+        // Place on floor
+        toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, ThickInMM*vertexPixelRatio / 2));
         
         // add a base
-        if (this.parentLitho.baseDepth !== 0) {
-            var baseThickness=this.parentLitho.borderThicknessInMM;
+        if (baseDepth !== 0) {
+            var baseThickness=borderThicknessInMM;
             // if there is no border, add a 2mm thick base
             if (baseThickness===0) {
                 var baseThickness=2;
                 // if the base sticks out the front, move the litho up above it
-                if (this.parentLitho.baseDepth>0) {
-                    toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, baseThickness*this.parentLitho.vertexPixelRatio, 0));
+                if (baseDepth>0) {
+                    toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, baseThickness*vertexPixelRatio, 0));
                 }
             }
             // cube for base
-            var lithoBase = new THREE.BoxGeometry(this.parentLitho.WidthInMM*this.parentLitho.vertexPixelRatio, 
-                                                   baseThickness * this.parentLitho.vertexPixelRatio, 
-                                                   Math.abs(this.parentLitho.baseDepth) * this.parentLitho.vertexPixelRatio);
+            var lithoBase = new THREE.BoxGeometry(WidthInMM*vertexPixelRatio, 
+                                                   baseThickness * vertexPixelRatio, 
+                                                   Math.abs(baseDepth) * vertexPixelRatio);
             // move bas to position
-            lithoBase.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0 - (this.parentLitho.HeightInMM-baseThickness)*this.parentLitho.vertexPixelRatio / 2, (this.parentLitho.baseDepth * this.parentLitho.vertexPixelRatio) / 2));
+            lithoBase.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0 - (HeightInMM-baseThickness)*vertexPixelRatio / 2, (baseDepth * vertexPixelRatio) / 2));
             toGeometry.merge(lithoBase);
         }
         // rotate for vertical printing if there's a base
-        if (this.parentLitho.baseDepth !== 0) {
+        if (baseDepth !== 0) {
             toGeometry.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 2));
-            toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, pixelHeight / 2));
+            // centre mesh
+            toGeometry.center();
+            // Place on floor
+            toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, HeightInMM*vertexPixelRatio / 2));
+            //toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, pixelHeight / 2));
         }
     }
 };
@@ -772,8 +789,7 @@ LITHO.LithoBox.prototype = {
  * Class STLGenerator
  * 
  */
-LITHO.STLGenerator = function (parent) {
-    this.parentLitho=parent;
+LITHO.STLGenerator = function () {
 };
 LITHO.STLGenerator.prototype = {
     
@@ -866,5 +882,4 @@ LITHO.STLGenerator.prototype = {
         }
         return dv;
     }
-    
 };
