@@ -204,8 +204,8 @@ LITHO.Lithophane.prototype = {
  * @returns {undefined}
  */    
     setupDragNDrop:function () {
+        var that=this;
         if (this.supported.draganddrop) {
-            this.droptarget.parentObject=this; // needed for callbacks
             this.droptarget.ondragover = function () {
                 this.className = 'hover';
                 return false;
@@ -219,7 +219,7 @@ LITHO.Lithophane.prototype = {
                 e.preventDefault();
                 var files=e.dataTransfer.files;
                 for (var i = 0; i < files.length; i++) {
-                    this.parentObject.previewFile(files[i]);
+                    that.previewFile(files[i]);
                 }
             };
         }
@@ -375,7 +375,6 @@ LITHO.Lithophane.prototype = {
 /*******************************************************************************
  * 
  * Class Scene3D 
- * @param {Lithophane} parent
  * @returns {undefined}
  */
 LITHO.Scene3D = function () {
@@ -398,18 +397,18 @@ LITHO.Scene3D.prototype = {
  * @returns {undefined}
  */
     init3D : function (threeDCanvas,vertexPixelRatio,createBox) {
-        var thisobject=this; // needed for call back functions
+        var that=this; // needed for call back functions
         function render() {
-            thisobject.controls.update();
+            that.controls.update();
             requestAnimationFrame(render);
-            thisobject.renderer.render(thisobject.scene, thisobject.camera);
+            that.renderer.render(that.scene, that.camera);
         };
         function Resize(e) {
-            var width = parseInt(window.getComputedStyle(thisobject.container).width);
-            var height = parseInt(window.getComputedStyle(thisobject.container).height);
-            thisobject.camera.aspect = width / height;
-            thisobject.camera.updateProjectionMatrix();
-            thisobject.renderer.setSize(width, height);
+            var width = parseInt(window.getComputedStyle(that.container).width);
+            var height = parseInt(window.getComputedStyle(that.container).height);
+            that.camera.aspect = width / height;
+            that.camera.updateProjectionMatrix();
+            that.renderer.setSize(width, height);
         };
         
         // should get the Canvas Renderer working for other browsers...
