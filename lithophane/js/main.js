@@ -340,6 +340,7 @@ LITHO.Lithophane.prototype = {
             setTimeout(doChunk4, 1);
         }
         function doChunk4() {
+            lithoGeometry.mergeVertices();
             lithoGeometry.computeFaceNormals();
             that.setProgress(60, LITHO_StatusMessages.cvNormals);
             setTimeout(doChunk5, 1);
@@ -479,7 +480,7 @@ LITHO.Scene3D.prototype = {
                 this.scene.add(pointLight);
             }
             
-            var material = new THREE.MeshPhongMaterial({ color: 0x001040, specular: 0x006080, shininess: 10 });//side: THREE.DoubleSide,
+            var material = new THREE.MeshPhongMaterial({ color: 0x001040, specular: 0x006080, side: THREE.DoubleSide,shininess: 10 });//
             var lithoPart = new THREE.Mesh(lithoMesh, material);
             this.scene.add(lithoPart);
             
@@ -560,10 +561,12 @@ LITHO.ImageMap.prototype = {
 /*******************************************************************************
  * 
  * Class LithoBox 
+ * @param {Lithophane} parent
  * 
  */
 LITHO.LithoBox = function (parent) {
     this.parentLitho=parent;
+    this.centreBack=false;
 };
 LITHO.LithoBox.prototype = {
     
@@ -590,7 +593,7 @@ LITHO.LithoBox.prototype = {
         height--;
         width--;
         var verts=[];
-        verts.length = height * width+1;
+        verts.length = height * width+(this.centreBack?1:0);
         for (i = 0; i <= height; i++) {
             for (j = 0; j <= width; j++) {
                 var x=reFlip ? j : widthPixels - j;
@@ -613,7 +616,9 @@ LITHO.LithoBox.prototype = {
                 index++;
             }
         }
-        verts[index] = new THREE.Vector3(width/2, height/2, 0);// centre back for edge to cantre back faces
+        if (this.centreBack) {
+            verts[index] = new THREE.Vector3(width/2, height/2, 0);// centre back for edge to cantre back faces
+        }
         return verts;
     },
 /*******************************************************************************
@@ -636,7 +641,7 @@ LITHO.LithoBox.prototype = {
         var y1offset = widthPixels;
         
         var faces=[];
-        faces.length = (height * width * 2)+2;
+        faces.length = (height * width * 2)+(this.centreBack?2:0);
         
         for (i = 0; i < height; i++) {
             var xoffset = 0;
@@ -660,18 +665,19 @@ LITHO.LithoBox.prototype = {
                     faces[index++] = new THREE.Face3(b, c, d);
                 }
                 
-                // add extra faces for the back of the lithophane
-                if (j===0) {
-                    faces[index++] = new THREE.Face3(a,d,heightPixels* widthPixels);
-                } else if (j===width-1) {
-                    faces[index++] = new THREE.Face3(c,b,heightPixels* widthPixels);
-                } 
-                if (i===0) {
-                    faces[index++] = new THREE.Face3(b,a,heightPixels* widthPixels);
-                } else if (i===height-1) {
-                    faces[index++] = new THREE.Face3(d,c,heightPixels* widthPixels);
+                if (this.centreBack) {
+                    // add extra faces for the back of the lithophane
+                    if (j===0) {
+                        faces[index++] = new THREE.Face3(a,d,heightPixels* widthPixels);
+                    } else if (j===width-1) {
+                        faces[index++] = new THREE.Face3(c,b,heightPixels* widthPixels);
+                    } 
+                    if (i===0) {
+                        faces[index++] = new THREE.Face3(b,a,heightPixels* widthPixels);
+                    } else if (i===height-1) {
+                        faces[index++] = new THREE.Face3(d,c,heightPixels* widthPixels);
+                    }
                 }
-                
                 xoffset++;
                 x1offset++;
             }
@@ -698,7 +704,7 @@ LITHO.LithoBox.prototype = {
         var uva, uvb, uvc, uvd;
         index = 0;
         var uvs=[];
-        uvs.length = (height+1) * (width+1) * 2;
+        uvs.length = (height+(this.centreBack?1:0)) * (width+(this.centreBack?1:0)) * 2;
         for (i = 0; i < height; i++) {
             // UV Array holds values from 0-1
             var yProp = i / height;
@@ -723,20 +729,22 @@ LITHO.LithoBox.prototype = {
                     uvs[index++] = [uva, uvb, uvd];
                     uvs[index++] = [uvb.clone(), uvc, uvd.clone()];
                 }
-                // add extra UVs for the back of the lithophane
-                if (j===0) {
-                    var uvx = new THREE.Vector2(0.5,0.5);
-                    uvs[index++] = [uva.clone(),uvd.clone(),uvx];
-                } else if (j===width-1) {
-                    var uvx = new THREE.Vector2(0.5, 0.5);
-                    uvs[index++] = [uvc.clone(),uvb.clone(),uvx];
-                } 
-                if (i===0) {
-                    var uvx = new THREE.Vector2(0.5, 0.5);
-                    uvs[index++] = [uvb.clone(),uva.clone(),uvx];
-                } else if (i===height-1) {
-                    var uvx = new THREE.Vector2(0.5, 0.5);
-                    uvs[index++] = [uvd.clone(),uvc.clone(),uvx];
+                if (this.centreBack) {
+                    // add extra UVs for the back of the lithophane
+                    if (j===0) {
+                        var uvx = new THREE.Vector2(0.5,0.5);
+                        uvs[index++] = [uva.clone(),uvd.clone(),uvx];
+                    } else if (j===width-1) {
+                        var uvx = new THREE.Vector2(0.5, 0.5);
+                        uvs[index++] = [uvc.clone(),uvb.clone(),uvx];
+                    } 
+                    if (i===0) {
+                        var uvx = new THREE.Vector2(0.5, 0.5);
+                        uvs[index++] = [uvb.clone(),uva.clone(),uvx];
+                    } else if (i===height-1) {
+                        var uvx = new THREE.Vector2(0.5, 0.5);
+                        uvs[index++] = [uvd.clone(),uvc.clone(),uvx];
+                    }
                 }
             }
         }
@@ -765,16 +773,29 @@ LITHO.LithoBox.prototype = {
         // adjust to exact size required - there is always 1 pixel less on the 
         // width & height due to the vertices being positioned in the middle of each pixel
         toGeometry.computeBoundingBox();
-        var gWidth =(toGeometry.boundingBox.max.x - toGeometry.boundingBox.min.x)/vertexPixelRatio;
-        var gHeight=(toGeometry.boundingBox.max.y - toGeometry.boundingBox.min.y)/vertexPixelRatio;
-        var gThick =(toGeometry.boundingBox.max.z - toGeometry.boundingBox.min.z)/vertexPixelRatio;
+        var gWidth =(toGeometry.boundingBox.max.x - toGeometry.boundingBox.min.x);
+        var gHeight=(toGeometry.boundingBox.max.y - toGeometry.boundingBox.min.y);
+        var gThick =(toGeometry.boundingBox.max.z - toGeometry.boundingBox.min.z);
+        toGeometry.center();
+        // Place on floor
+        toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0-toGeometry.boundingBox.min.z));
+        
+        var back=new THREE.PlaneGeometry(gWidth,gHeight,gWidth,gHeight);
+        //back.applyMatrix(new THREE.Matrix4().makeTranslation(toGeometry.boundingBox.min.x,toGeometry.boundingBox.min.y,toGeometry.boundingBox.min.z));
+        back.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI));
+        toGeometry.merge(back);
+        toGeometry.mergeVertices();
+        
+        gWidth /=vertexPixelRatio;
+        gHeight/=vertexPixelRatio;
+        gThick /=vertexPixelRatio;
+
         toGeometry.applyMatrix(new THREE.Matrix4().makeScale(WidthInMM/gWidth,HeightInMM/gHeight,ThickInMM/gThick));
 
         // centre mesh
         toGeometry.center();
         // Place on floor
         toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, ThickInMM*vertexPixelRatio / 2));
-        
         // add a base
         if (baseDepth !== 0) {
             var baseThickness=borderThicknessInMM;
