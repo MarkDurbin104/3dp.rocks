@@ -1,0 +1,90 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-01-29 23:37+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: index.html:71
+msgid "Loading..."
+msgstr ""
+
+#: index.html:72
+msgid "2D processing..."
+msgstr ""
+
+#: index.html:73
+msgid "Processing Vectors..."
+msgstr ""
+
+#: index.html:74
+msgid "Processing Faces..."
+msgstr ""
+
+#: index.html:75
+msgid "Processing Surface..."
+msgstr ""
+
+#: index.html:76
+msgid "Computing Vertex Normals..."
+msgstr ""
+
+#: index.html:77
+msgid "Computing Face Normals..."
+msgstr ""
+
+#: index.html:78
+msgid "Adding to scene..."
+msgstr ""
+
+#: index.html:79
+msgid "Creating STL file..."
+msgstr ""
+
+#: index.html:80
+msgid "Downloading..."
+msgstr ""
+
+#: index.html:98
+msgid "Image to Lithophane"
+msgstr ""
+
+#: index.html:102
+msgid "Max Size (MM):"
+msgstr ""
+
+#: index.html:107
+msgid "Thickness (MM):"
+msgstr ""
+
+#: index.html:112
+msgid "Border (MM):"
+msgstr ""
+
+#: index.html:117
+msgid "Thinnest layer (MM):"
+msgstr ""
+
+#: index.html:122
+msgid "Vectors per Pixel:"
+msgstr ""
+
+#: index.html:127
+msgid "Base/Stand depth:"
+msgstr ""
+
+#: index.html:132
+msgid "Don't Flip X Axis:"
+msgstr ""

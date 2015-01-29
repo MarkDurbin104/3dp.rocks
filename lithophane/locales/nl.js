@@ -1,22 +1,4 @@
-var lang_nl = {
-        	// output from the .po conversion
-			locale_data : {
-			    "lithophane" : {
-			      "" : {
-			        "domain" : "lithophane",
-			        "lang"   : "nl",
-			        "plural_forms" : "nplurals=2; plural=(n != 1);"
-			      },
-			      // no keys present in english, just dummy "some key" : [ "some value"]
-		  		"Image to Lithophane": ["Foto naar Lithophane" ], 
-			    },
-			},
-			"domain" : "lithophane",
-		  	// This callback is called when a key is missing
-		  	"missing_key_callback" : function(key) {
-		    	// Do something with the missing key
-		    	// e.g. send key to web service or
-		    	return key;
-		    	//console.error(key);
-		  	},
-        };
+var lang_nl = 
+// output nl.json
+{"domain":"lithophane","locale_data":{"lithophane":{"":{"domain":"lithophane","plural_forms":"nplurals=2; plural=(n != 1);","lang":"nl"},"Loading...":["Laden..."],"2D processing...":["2D verwerking..."],"Processing Vectors...":["Vectoren verwerken..."],"Processing Faces...":["Zijden verwerken..."],"Processing Surface...":["Oppervlakken verwerken..."],"Computing Vertex Normals...":["Berekenen Vector Normalen..."],"Computing Face Normals...":["Berekenen Zijde Normalen..."],"Adding to scene...":["Toevoegen aan de canvas..."],"Creating STL file...":["STL bestand aanmaken..."],"Downloading...":["Downloading..."],"Image to Lithophane":["Foto naar Lithophane"],"Max Size (MM):":["Max Grootte (MM):"],"Thickness (MM):":["Dikte (MM)"],"Border (MM):":["Rand (MM)"],"Thinnest layer (MM):":["Dunste laag (MM)"],"Vectors per Pixel:":["Interpolatiegraad tussen Pixels"],"Base/Stand depth:":["Basis/Stand diepte"],"Don't Flip X Axis:":["X-As Niet Omflippen"]}}}
+;
