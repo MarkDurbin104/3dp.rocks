@@ -3,22 +3,21 @@
  */
 
 THREE.NormalControls = function ( camera, domElement ) {
-	this.target = new THREE.Vector3(0,0,0);
-  this.camera = camera;
-  this.element = domElement;
-  this.camera.lookAt( this.target );
-  this.keyboard = [];
-  this.mouseButton = [];
-  this.prevMousePos = [0,0];
-  this.desiredCameraPosition = undefined;
-  this.desiredCameraTarget = undefined;
-
-	this.minDistance = 0.5;
-	this.maxDistance = Infinity;
-  this.n00bMode = true;
-  this.dirty = true;
-  // add event listeners
-  this.addEventListeners();
+    this.target = new THREE.Vector3(0,0,0);
+    this.camera = camera;
+    this.element = domElement;
+    this.camera.lookAt( this.target );
+    this.keyboard = [];
+    this.mouseButton = [];
+    this.prevMousePos = [0,0];
+    this.desiredCameraPosition = undefined;
+    this.desiredCameraTarget = undefined;
+    this.minDistance = 0.5;
+    this.maxDistance = Infinity;
+    this.n00bMode = true;
+    this.dirty = true;
+    // add event listeners
+    this.addEventListeners();
 }
 
 THREE.NormalControls.prototype.update = function( timeElapsed ) {

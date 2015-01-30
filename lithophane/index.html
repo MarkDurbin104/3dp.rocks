@@ -44,17 +44,18 @@ THE SOFTWARE.
                 cvNormals:   'Computing Vertex Normals...'  ,
                 cfNormals:   'Computing Face Normals...'    ,
                 aScene:      'Adding to scene...'           ,
-                createSTL:   'Creating STL file...'         ,
+                createSTL:   'Creating STL file...'         , 
                 download:    'Downloading...'
             };
             var LITHO_InputRanges = {
-                maximumSize:     {name:'maximumSize'    , lower:1   , upper:1000  },
-                thickness:       {name:'thickness'      , lower:1   , upper:100   },
-                borderThick:     {name:'borderThick'    , lower:0   , upper:50    },
-                minLayer:        {name:'minLayer'       , lower:0.1 , upper:10    },
-                vectorsPerPixel: {name:'vectorsPerPixel', lower:1   , upper:5     },
-                baseDepth:       {name:'baseDepth'      , lower:-50 , upper:50    },
-                reFlip:          {name:'reFlip'         , lower:true, upper:false }
+                maximumSize:     {name:'maximumSize'    , lower:1   , upper:1000  ,startval:20    },
+                thickness:       {name:'thickness'      , lower:1   , upper:100   ,startval:5     },
+                borderThick:     {name:'borderThick'    , lower:0   , upper:50    ,startval:0     },
+                minLayer:        {name:'minLayer'       , lower:0.1 , upper:10    ,startval:1     },
+                vectorsPerPixel: {name:'vectorsPerPixel', lower:1   , upper:5     ,startval:2     },
+                baseDepth:       {name:'baseDepth'      , lower:-50 , upper:50    ,startval:0     },
+                reFlip:          {name:'reFlip'         , lower:true, upper:false ,startval:false },
+                curve:           {name:'curve'          , lower:-360, upper:360   ,startval:0     }
             };
         </script>
         <script src="js/main.js"></script>
@@ -63,13 +64,35 @@ THE SOFTWARE.
         <div id="inputs">
             <img id="logo" src="images/logo.png" alt="NestedCube Logo">
             <div id="heading">Image to Lithophane</div>
-            <p id="maximumSizePrompt"     >Max Size (MM):       <input id="maximumSize"     type="text"     value="100" onchange="lithophane.updateValues(event);" title="1 to 1000"> </p>
-            <p id="thicknessPrompt"       >Thickness (MM):      <input id="thickness"       type="text"     value="6.4" onchange="lithophane.updateValues(event);" title="1 to 100"> </p>
-            <p id="borderThickPrompt"     >Border (MM):         <input id="borderThick"     type="text"     value="1.6" onchange="lithophane.updateValues(event);" title="0 to Max Size"> </p>
-            <p id="minLayerPrompt"        >Thinnest layer (MM): <input id="minLayer"        type="text"     value="0.3" onchange="lithophane.updateValues(event);" title="0.1 to Thickness"> </p>
-            <p id="vectorsPerPixelPrompt" >Vectors per Pixel:   <input id="vectorsPerPixel" type="text"     value="2"   onchange="lithophane.updateValues(event);" title="1 to 5"> </p>
-            <p id="baseDepthPrompt"       >Base/Stand depth:    <input id="baseDepth"       type="text"     value="0"   onchange="lithophane.updateValues(event);" title="-50 to 50"> </p>
-            <p id="reFlipPrompt"          >Don't Flip X Axis:   <input id="reFlip"          type="checkbox"             onchange="lithophane.updateValues(event);"> </p>
+            <p id="maximumSizePrompt"     >Max Size (MM):       <input id="maximumSize"     type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="thicknessPrompt"       >Thickness (MM):      <input id="thickness"       type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="borderThickPrompt"     >Border (MM):         <input id="borderThick"     type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="minLayerPrompt"        >Thinnest layer (MM): <input id="minLayer"        type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="vectorsPerPixelPrompt" >Vectors per Pixel:   <input id="vectorsPerPixel" type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="baseDepthPrompt"       >Base/Stand depth:    <input id="baseDepth"       type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="curvePrompt"           >Curve:    
+                <select id="curve"  onchange="lithophane.updateValues(event);" >
+                    <option value="0"  > Flat             </option>
+                    <option value="-30" > 30 degree inner</option>
+                    <option value="-45" > 45 degree inner</option>
+                    <option value="-90" > 90 degree inner</option>
+                    <option value="-120">120 degree inner</option>
+                    <option value="-135">135 degree inner</option>
+                    <option value="-180">180 degree inner</option>
+                    <option value="-270">270 degree inner</option>
+                    <option value="-360">360 degree inner</option>
+                    <option value="30" > 30 degree outer</option>
+                    <option value="45" > 45 degree outer</option>
+                    <option value="90" > 90 degree outer</option>
+                    <option value="120">120 degree outer</option>
+                    <option value="135">135 degree outer</option> 
+                    <option value="180">180 degree outer</option>
+                    <option value="270">270 degree outer</option>
+                    <option value="360">360 degree outer</option>
+              </select> 
+            </p>
+
+            <p id="reFlipPrompt"          >Don't Flip X Axis:   <input id="reFlip"          type="checkbox"          onchange="lithophane.updateValues(event);" > </p>
             <canvas   id="outputcanvas"  > </canvas>
             <progress id="progressBar"   max="100" value="0" style="visibility:hidden" ></progress>
             <p        id="progressState" > </p>
