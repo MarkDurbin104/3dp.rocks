@@ -34,13 +34,13 @@ THE SOFTWARE.
         <script src="js/three/controls/NormalControls.js"></script>
         <script src="js/FileSaver.js"></script>
         <script src="js/jed.js"></script>
-        <!-- // uncomment your locale
+        <!-- // uncomment your locale -->
         <script src="locales/nl.js"></script>
-        -->
+        <!-- -->
         <script>
         //instantiate the catalog you want to use
-        //var nlCatalog = lang_nl;
-        //var i18n = new Jed(nlCatalog);
+        var nlCatalog = lang_nl;
+        var i18n = new Jed(nlCatalog);
         var enCatalog = {
         	// output from the .po conversion
 			locale_data : {
@@ -63,7 +63,7 @@ THE SOFTWARE.
 		    	//console.error(key);
 		  	},
         };
-        var i18n = new Jed(enCatalog);
+        //var i18n = new Jed(enCatalog);
         </script>
         <script>
             // LITHO_StatusMessages and LITHO_InputRanges must be defined before including main.js

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-29 23:37+0100\n"
+"POT-Creation-Date: 2015-01-30 19:56+0100\n"
 "PO-Revision-Date: 2015-01-29 23:53+0100\n"
 "Last-Translator: benny <benny.malengier@gmail.com>\n"
 "Language-Team: Dutch\n"
@@ -16,7 +16,6 @@ msgstr ""
 "Content-Type: text/plain; charset=ASCII\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
 
 #: index.html:71
 msgid "Loading..."
@@ -89,3 +88,11 @@ msgstr "Basis/Stand diepte"
 #: index.html:132
 msgid "Don't Flip X Axis:"
 msgstr "X-As Niet Omflippen"
+
+#: index.html:142
+msgid ""
+"<br><br>Drop images here.<br>Then click an image to convert and "
+"download<br>WebGL only, sorry if your browser doesn't support it..."
+msgstr ""
+"<br><br>Sleep foto's hier.<br>Klik daarna een foto aan om hem converteren en "
+"te downloaden<br>Enkel via WebGL, sorry als je browser dat niet ondersteunt..."
