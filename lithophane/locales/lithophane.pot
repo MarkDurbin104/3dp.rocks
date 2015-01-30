@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-30 19:56+0100\n"
+"POT-Creation-Date: 2015-01-30 20:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "Downloading..."
 msgstr ""
 
-#: index.html:98
+#: index.html:99
 msgid "Image to Lithophane"
 msgstr ""
 
@@ -65,32 +65,54 @@ msgstr ""
 msgid "Max Size (MM):"
 msgstr ""
 
-#: index.html:107
+#: index.html:106
 msgid "Thickness (MM):"
 msgstr ""
 
-#: index.html:112
+#: index.html:110
 msgid "Border (MM):"
 msgstr ""
 
-#: index.html:117
+#: index.html:114
 msgid "Thinnest layer (MM):"
 msgstr ""
 
-#: index.html:122
+#: index.html:118
 msgid "Vectors per Pixel:"
 msgstr ""
 
-#: index.html:127
+#: index.html:122
 msgid "Base/Stand depth:"
 msgstr ""
 
-#: index.html:132
+#: index.html:126
+msgid "Curve:"
+msgstr ""
+
+#: index.html:129
+msgid "Flat"
+msgstr ""
+
+#: index.html:130 index.html:131 index.html:132 index.html:133 index.html:134
+#: index.html:135 index.html:136 index.html:137
+msgid "%1$d degree inner"
+msgstr ""
+
+#: index.html:138 index.html:139 index.html:140 index.html:141 index.html:142
+#: index.html:143 index.html:144 index.html:145
+msgid "%1$d degree outer"
+msgstr ""
+
+#: index.html:150
 msgid "Don't Flip X Axis:"
 msgstr ""
 
-#: index.html:142
+#: index.html:159
 msgid ""
 "<br><br>Drop images here.<br>Then click an image to convert and "
 "download<br>WebGL only, sorry if your browser doesn't support it..."
+msgstr ""
+
+#: index.html:163
+msgid "<br><br>click image<br>to convert<br>and download"
 msgstr ""
