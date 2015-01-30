@@ -28,7 +28,7 @@ $outputCanvasWidth: 320px;
 $logoWidth:32px;
 $logoHeight:40px;
 $headingTop:5px;
-$headingLeft:$logoWidth + 10;
+$headingLeft:$logoWidth + 10px;
 $headingWidth:$outputCanvasWidth - logoWidth;
 $headingHeight:$logoHeight;
 $outputCanvasHeight: 240px; 
@@ -45,15 +45,16 @@ $threeDCanvasHeight:$topSectionHeight;
 $dropWidth:($overallWidth - $rightMargin);
 $dropTop:$topSectionHeight + $topMargin;
 $dropMinHeight:$outputCanvasHeight + ($dropMargin *2);
-$inputWidth:100px;
+$inputWidth:150px;
 $inputTextWidth:$inputsWidth - ($leftMargin*2);
 //$inputTextHeight:25px;
 $inputTextMargin:3px;
 $progressBGColour:#f3f3f3;
 $progressBorder:0;
 $progressHeight:18px;
-$progressWidth:$outputCanvasWidth + 1;
+$progressWidth:$outputCanvasWidth + 1px;
 $progressBRadius:9px;
+$selectWidth:$inputWidth+4px;
 
 body {
         font-family: "Arial";
@@ -135,6 +136,11 @@ body {
 input {
     width: $inputWidth;
     text-align: right;
+    color: black;
+}
+select {
+    width: $selectWidth;
+    //text-align: right;
     color: black;
 }
 

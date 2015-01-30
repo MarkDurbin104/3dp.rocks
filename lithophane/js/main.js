@@ -78,13 +78,13 @@ Class STLGenerator {
                 download:    'Downloading...'
         };
         var LITHO_InputRanges = {
-            maximumSize:     {name:'miximumSize'    , lower:1   , upper:1000  },
-            thickness:       {name:'thickness'      , lower:1   , upper:100   },
-            borderThick:     {name:'borderThick'    , lower:0   , upper:50    },
-            minLayer:        {name:'minLayer'       , lower:0.1 , upper:10    },
-            vectorsPerPixel: {name:'vectorsPerPixel', lower:1   , upper:5     },
-            baseDepth:       {name:'baseDepth'      , lower:-50 , upper:50    },
-            reFlip:          {name:'reFlip'         , lower:true, upper:false }
+            maximumSize:     {name:'maximumSize'    , lower:1   , upper:1000  ,startval:100   },
+            thickness:       {name:'thickness'      , lower:1   , upper:100   ,startval:5     },
+            borderThick:     {name:'borderThick'    , lower:0   , upper:50    ,startval:1.6   },
+            minLayer:        {name:'minLayer'       , lower:0.1 , upper:10    ,startval:0.3   },
+            vectorsPerPixel: {name:'vectorsPerPixel', lower:1   , upper:5     ,startval:2     },
+            baseDepth:       {name:'baseDepth'      , lower:-50 , upper:50    ,startval:0     },
+            reFlip:          {name:'reFlip'         , lower:true, upper:false ,startval:false }
         };
     //</script>
 
@@ -110,6 +110,7 @@ LITHO.Lithophane = function () {
     this.progressBar = document.getElementById('progressBar');
     this.progressState = document.getElementById('progressState');
     this.threeDCanvas = document.getElementById('threedcanvas');
+    this.logoImage = document.getElementById('logo');
 };
 LITHO.Lithophane.prototype = {
     
@@ -133,6 +134,7 @@ LITHO.Lithophane.prototype = {
     minThicknessInMM : 0,
     vertexPixelRatio : 0,
     baseDepth : 0,
+    curve: 0,
     reFlip : false, 
     
     // values calculated from parameters for ease of reading
@@ -165,7 +167,12 @@ LITHO.Lithophane.prototype = {
  */
     getValue:function (inputRange, defaultVal) {
         var element = document.getElementById(inputRange.name);
-        var value = parseFloat(element.value);
+        var rawVal=element.value;
+        if (rawVal==="") {
+            rawVal=inputRange.startval;
+            element.value=rawVal;
+        }
+        var value = parseFloat(rawVal);
         if ((value >= inputRange.lower) && (value <= inputRange.upper)) {
             element.className = '';
             return value;
@@ -186,8 +193,8 @@ LITHO.Lithophane.prototype = {
         this.minThicknessInMM       = this.getValue(LITHO_InputRanges.minLayer        , this.minThicknessInMM         );
         this.vertexPixelRatio       = this.getValue(LITHO_InputRanges.vectorsPerPixel , this.vertexPixelRatio         );
         this.baseDepth              = this.getValue(LITHO_InputRanges.baseDepth       , this.baseDepth                );
+        this.curve                  = this.getValue(LITHO_InputRanges.curve           , this.curve                    );
         this.reFlip                 = document.getElementById(LITHO_InputRanges.reFlip.name).checked;
-        
         // recalculate basic measurements
         this.borderPixels = this.vertexPixelRatio * this.borderThicknessInMM;
         this.maxOutputWidth = this.maxOutputDimensionInMM - this.borderThicknessInMM * 2;
@@ -205,6 +212,7 @@ LITHO.Lithophane.prototype = {
  */    
     setupDragNDrop:function () {
         var that=this;
+        this.previewFile();
         if (this.supported.draganddrop) {
             this.droptarget.ondragover = function () {
                 this.className = 'hover';
@@ -243,8 +251,12 @@ LITHO.Lithophane.prototype = {
  * @returns {undefined}]
  */
     previewFile:function (file) {
-        var reader = new FileReader();
         var that=this; // needed for callbacks
+        if (file===undefined) { // allow logo click for testing
+            this.logoImage.onclick = onImageClicked;
+            this.logoImage.filename = 'NestedCube_Logo';        
+            return;
+        }
         function onImageClicked(event) {
             var image=event.target; // the image that was clicked
             if (image.naturalWidth > image.naturalHeight) {
@@ -262,6 +274,7 @@ LITHO.Lithophane.prototype = {
             that.createHeightMesh(image);
         };
         if (this.supported.filereader === true && this.acceptedTypes[file.type] === true) {
+            var reader = new FileReader();
             reader.onprogress = function (event) {
                 var level = (event.loaded / event.total * 100);
                 that.setProgress(level,LITHO_StatusMessages.loading);
@@ -297,12 +310,12 @@ LITHO.Lithophane.prototype = {
         var width=this.outputCanvas.width;
         var height=this.outputCanvas.height;
         var vpRatio=this.vertexPixelRatio;
+        var curve=this.curve;
         var stlBin;
         var heightData;
         var lithoGeometry;
         var lithoBox;
         var stlGenerator;
-        var corners;
         
         // each of the "DoChunkN()" functions splits up the processing so that the progress bar can update
         // an approximate position and status is set in each function before a setTimeout call to the next
@@ -314,7 +327,7 @@ LITHO.Lithophane.prototype = {
         setTimeout(doChunk0, 1);
         function doChunk0() {
             var imageMap = new LITHO.ImageMap();
-            heightData=imageMap.processImage(that.outputCanvas, image);
+            heightData=imageMap.processImage(that.outputCanvas, image,that.minThicknessInMM,that.zScale,vpRatio);
             imageMap=undefined;
             that.setProgress(20, LITHO_StatusMessages.vProcessing);
             setTimeout(doChunk1, 1);
@@ -322,15 +335,13 @@ LITHO.Lithophane.prototype = {
         function doChunk1() {
             lithoBox = new LITHO.LithoBox();
             lithoGeometry = new THREE.Geometry();
-            corners = [];
-            lithoGeometry.vertices=lithoBox.processVectors(heightData, width, height,that.minThicknessInMM,that.zScale,vpRatio,that.reFlip,corners);
+            lithoGeometry.vertices=lithoBox.processVectors(heightData, width, height,that.reFlip,curve);
             heightData=undefined;
             that.setProgress(30, LITHO_StatusMessages.fProcessing);
             setTimeout(doChunk2, 1);
         }
         function doChunk2() {
-            lithoGeometry.faces=lithoBox.processFaces(width, height,corners);
-            corners=undefined;
+            lithoGeometry.faces=lithoBox.processFaces(width, height);
             that.setProgress(40, LITHO_StatusMessages.sProcessing);
             setTimeout(doChunk3, 1);
         }
@@ -346,13 +357,13 @@ LITHO.Lithophane.prototype = {
             setTimeout(doChunk5, 1);
         }
         function doChunk5() {
-            lithoGeometry.computeVertexNormals();
+            //lithoGeometry.computeVertexNormals();
+            lithoBox.addBaseSizePos(lithoGeometry, that.WidthInMM, that.HeightInMM, that.ThickInMM ,that.borderThicknessInMM, that.baseDepth,vpRatio,curve);
+            lithoBox=undefined;
             that.setProgress(70, LITHO_StatusMessages.aScene);
             setTimeout(doChunk6, 1);
         }
         function doChunk6() {
-            lithoBox.addBaseSizePos(lithoGeometry, that.WidthInMM, that.HeightInMM, that.ThickInMM ,that.borderThicknessInMM, that.baseDepth,vpRatio);
-            lithoBox=undefined;
             that.scene3d.setUp3DScene(lithoGeometry, vpRatio);
             that.setProgress(80, LITHO_StatusMessages.createSTL);
             setTimeout(doChunk7, 1);
@@ -469,7 +480,7 @@ LITHO.Scene3D.prototype = {
             pointLight.position.set(3000, -4000, 3500);
             this.scene.add(pointLight);
             
-            var addBackLights=false;
+            var addBackLights=true;
             if (addBackLights) {
                 var spotLight = new THREE.SpotLight(0xffffff, 1, 0);
                 spotLight.position.set(-1000, 1000, -1000);
@@ -516,9 +527,12 @@ LITHO.ImageMap.prototype = {
  * public  processImage         Do the 2D processing of the clicked image
  * @param {Canvas}              outputCanvas for display of inverted mono image
  * @param {Image} image         the image to process
+ * @param {Number} minThicknessInMM
+ * @param {Number} zScale
+ * @param {Number} vertexPixelRatio
  * @returns {heightData}
  */
-    processImage: function(outputCanvas, image) {
+    processImage: function(outputCanvas, image,minThicknessInMM,zScale,vertexPixelRatio) {
 
         // we'll need the 2D context to manipulate the data
         var canvas_context = outputCanvas.getContext("2d");
@@ -537,7 +551,7 @@ LITHO.ImageMap.prototype = {
         var pixels = image_data.data;
         var numb_pixels = pixels.length / 4; // the number of pixels to process
         
-        heightData = new Uint8Array(numb_pixels); // an array to hold the result data
+        heightData = new Float32Array(numb_pixels); // an array to hold the result data
         
         var image_pixel_offset = 0; // current image pixel being processed
         for (var height_pixel_index = 0; height_pixel_index < numb_pixels; height_pixel_index++) {
@@ -546,7 +560,8 @@ LITHO.ImageMap.prototype = {
             // create negative monochrome value from red, green and blue values
             var negative_average = 255 - (red_channel * 0.299 + green_channel * 0.587 + blue_channel * 0.114);
             
-            heightData[height_pixel_index] = negative_average; // store calue in height array
+            //heightData[height_pixel_index] = negative_average; 
+            heightData[height_pixel_index] = (minThicknessInMM + (negative_average * zScale)) * vertexPixelRatio; // store scaled value in height array
 
             // store value back in canvas in all channels for 2D display of negative monochrome image
             pixels[image_pixel_offset] = pixels[image_pixel_offset + 1] = pixels[image_pixel_offset + 2] = negative_average;
@@ -566,58 +581,75 @@ LITHO.ImageMap.prototype = {
  */
 LITHO.LithoBox = function (parent) {
     this.parentLitho=parent;
-    this.centreBack=false;
+    this.panelledBack=true;
 };
 LITHO.LithoBox.prototype = {
     
     constructor: LITHO.LithoBox,
-    
+   
 /*******************************************************************************
  * 
  *  private processVectors   Create vectors of 2D points from height map
  * @param {Array} heightData  The height data extracted from the image
  * @param {Number} width       The width (X)of the height date
  * @param {Number} height      the height(Y) of the height data
- * @param {Number} minThicknessInMM
- * @param {Number} zScale
- * @param {Number} vertexPixelRatio
  * @param {Number} reFlip
- * @param {Array} corners     indexes of the corners (for the back)
  * @returns {verts}         Geometry.vertices array to process
  */
-    processVectors: function (heightData, width, height,minThicknessInMM,zScale,vertexPixelRatio,reFlip,corners) {
+    processVectors: function (heightData, width, height,reFlip,curve) {
         var i, j;
         var index = 0;
         var heightPixels = height;
         var widthPixels = width;
         height--;
         width--;
+        
+        if (curve!==0) {
+            var angle=Math.abs(curve);
+            var arcRadius=(width/curve)*(180/Math.PI);
+            var distanceFromFlat=Math.sin(angle*(360/Math.PI))*arcRadius;
+            var startAngle=(0-angle/2);
+            if (curve<0) distanceFromFlat=0-distanceFromFlat;
+            console.log("angle="+angle+" distance "+distanceFromFlat+" arcRadius="+arcRadius);
+        }
         var verts=[];
-        verts.length = height * width+(this.centreBack?1:0);
+        verts.length = height * width;
         for (i = 0; i <= height; i++) {
             for (j = 0; j <= width; j++) {
-                var x=reFlip ? j : widthPixels - j;
-                var y=heightPixels - i; 
-                // square up edges
-                if (x===2) x--;
-                if (y===2) y--;
-                if (x===width) x++;
-                if (y===height) y++;
-                
-                if ((i===0)||(j===0)||(i===height)||j===width) { // make sure the edge pixels go down to the base
-                    //if (((i===0)||(i===height))&&((j===0)||(j===width)))
-                    //    corners.push(index); // save the indexes of the 4 corners for the back faces
-                    
-                    verts[index] = new THREE.Vector3(x, y, 0);
-                } else {
-                    verts[index] = new THREE.Vector3(x, y, 
-                    (minThicknessInMM + (heightData[index] * zScale)) * vertexPixelRatio);
+                if ((i===0)||(i===height)
+                 || (((j===0)||(j===width)))) { // make sure the edge pixels go down to the base
+                    heightData[index]=0;
                 }
+                
+                var y=heightPixels - i; 
+                
+                var z,x;
+                if (curve===0) {
+                    var x=reFlip ? j : widthPixels - j;
+                    z=heightData[index];
+                    // square up left/right edges
+                    if (x===2) x--;
+                    if (x===width) x++;
+                } else {
+                    var jpos=j;
+                    // square up left/right edges
+                    if (j===1) jpos--; else if (j===width-1) jpos++;
+                    
+                    var deg2Rad=(Math.PI/180);
+                    var u=jpos/width;
+                    var degreesRoated=startAngle+(angle*u);
+                    var rotation=degreesRoated*deg2Rad;
+                    var magnitude=heightData[index]+arcRadius;
+                    
+                    x=width/2         +magnitude*Math.sin(rotation);
+                    z=distanceFromFlat+magnitude*Math.cos(rotation);
+                }
+                // square up top/bottom edges
+                if (y===2) y--;
+                if (y===height) y++;
+                verts[index] = new THREE.Vector3(x, y, z);
                 index++;
             }
-        }
-        if (this.centreBack) {
-            verts[index] = new THREE.Vector3(width/2, height/2, 0);// centre back for edge to cantre back faces
         }
         return verts;
     },
@@ -626,10 +658,9 @@ LITHO.LithoBox.prototype = {
  * private processFaces     Create Face Trangles 
  * @param {type} width       The width (X)of the height date
  * @param {type} height      the height(Y) of the height data
- * @param {type} corners     indexes of the corners (for the back)
  * @returns {faces}
  */
-    processFaces: function(width, height,corners) {
+    processFaces: function(width, height) {
         var i, j;
         var index = 0;
         var heightPixels = height;
@@ -641,7 +672,7 @@ LITHO.LithoBox.prototype = {
         var y1offset = widthPixels;
         
         var faces=[];
-        faces.length = (height * width * 2)+(this.centreBack?2:0);
+        faces.length = (height * width * 2)+(this.panelledBack?width*2:0);
         
         for (i = 0; i < height; i++) {
             var xoffset = 0;
@@ -665,17 +696,14 @@ LITHO.LithoBox.prototype = {
                     faces[index++] = new THREE.Face3(b, c, d);
                 }
                 
-                if (this.centreBack) {
-                    // add extra faces for the back of the lithophane
-                    if (j===0) {
-                        faces[index++] = new THREE.Face3(a,d,heightPixels* widthPixels);
-                    } else if (j===width-1) {
-                        faces[index++] = new THREE.Face3(c,b,heightPixels* widthPixels);
-                    } 
-                    if (i===0) {
-                        faces[index++] = new THREE.Face3(b,a,heightPixels* widthPixels);
-                    } else if (i===height-1) {
-                        faces[index++] = new THREE.Face3(d,c,heightPixels* widthPixels);
+                if (this.panelledBack) {
+                    if (i===height-1) {
+                        a = y1offset + xoffset;
+                        b = y1offset + x1offset;
+                        c = x1offset;
+                        d = xoffset;
+                        faces[index++] = new THREE.Face3(a, b, d);
+                        faces[index++] = new THREE.Face3(b, c, d);
                     }
                 }
                 xoffset++;
@@ -696,15 +724,12 @@ LITHO.LithoBox.prototype = {
     processUVs: function(width, height) {
         var i, j;
         var index = 0;
-        var heightPixels = height;
-        var widthPixels = width;
-        //var verts=geometry.vertices;
         height--;
         width--;
         var uva, uvb, uvc, uvd;
         index = 0;
         var uvs=[];
-        uvs.length = (height+(this.centreBack?1:0)) * (width+(this.centreBack?1:0)) * 2;
+        uvs.length = (height+(this.panelledBack?1:0)) * (width+(this.panelledBack?1:0)) * 2;
         for (i = 0; i < height; i++) {
             // UV Array holds values from 0-1
             var yProp = i / height;
@@ -729,7 +754,7 @@ LITHO.LithoBox.prototype = {
                     uvs[index++] = [uva, uvb, uvd];
                     uvs[index++] = [uvb.clone(), uvc, uvd.clone()];
                 }
-                if (this.centreBack) {
+                if (this.panelledBack) {
                     // add extra UVs for the back of the lithophane
                     if (j===0) {
                         var uvx = new THREE.Vector2(0.5,0.5);
@@ -748,13 +773,6 @@ LITHO.LithoBox.prototype = {
                 }
             }
         }
-        // add extra four UVs for the back of the lithophane
-        //uva = new THREE.Vector2(0, 0);
-        //uvb = new THREE.Vector2(0, 1);
-        //uvc = new THREE.Vector2(1, 1);
-        //uvd = new THREE.Vector2(1, 0);
-        //uvs[index++] = [uva, uvb, uvd];
-        //uvs[index++] = [uvb.clone(), uvc, uvd.clone()];
         return uvs;
     },
 /*******************************************************************************
@@ -769,33 +787,35 @@ LITHO.LithoBox.prototype = {
  * @param {Number} vertexPixelRatio 
  * @returns {undefined}
  */
-    addBaseSizePos: function(toGeometry, WidthInMM, HeightInMM, ThickInMM ,borderThicknessInMM, baseDepth,vertexPixelRatio) {
+    addBaseSizePos: function(toGeometry, WidthInMM, HeightInMM, ThickInMM ,borderThicknessInMM, baseDepth,vertexPixelRatio,curve) {
         // adjust to exact size required - there is always 1 pixel less on the 
         // width & height due to the vertices being positioned in the middle of each pixel
         toGeometry.computeBoundingBox();
         var gWidth =(toGeometry.boundingBox.max.x - toGeometry.boundingBox.min.x);
         var gHeight=(toGeometry.boundingBox.max.y - toGeometry.boundingBox.min.y);
         var gThick =(toGeometry.boundingBox.max.z - toGeometry.boundingBox.min.z);
-        toGeometry.center();
-        // Place on floor
-        toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0-toGeometry.boundingBox.min.z));
         
-        var back=new THREE.PlaneGeometry(gWidth,gHeight,gWidth,gHeight);
-        //back.applyMatrix(new THREE.Matrix4().makeTranslation(toGeometry.boundingBox.min.x,toGeometry.boundingBox.min.y,toGeometry.boundingBox.min.z));
-        back.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI));
-        toGeometry.merge(back);
-        toGeometry.mergeVertices();
+        if ((!this.panelledBack)&&(curve===0)) {
+            toGeometry.center();
+            toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0-toGeometry.boundingBox.min.z));
+            //var back=new THREE.PlaneGeometry(gWidth,gHeight,gWidth,gHeight);
+            var back=new THREE.PlaneGeometry(gWidth,gHeight,1,1);
+            //back.applyMatrix(new THREE.Matrix4().makeTranslation(toGeometry.boundingBox.min.x,toGeometry.boundingBox.min.y,toGeometry.boundingBox.min.z));
+            back.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI));
+            toGeometry.merge(back);
+            toGeometry.mergeVertices();
+        }
         
-        gWidth /=vertexPixelRatio;
-        gHeight/=vertexPixelRatio;
-        gThick /=vertexPixelRatio;
-
-        toGeometry.applyMatrix(new THREE.Matrix4().makeScale(WidthInMM/gWidth,HeightInMM/gHeight,ThickInMM/gThick));
-
-        // centre mesh
-        toGeometry.center();
-        // Place on floor
-        toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, ThickInMM*vertexPixelRatio / 2));
+        if (curve===0) {
+            gWidth /=vertexPixelRatio;
+            gHeight/=vertexPixelRatio;
+            gThick /=vertexPixelRatio;
+            toGeometry.applyMatrix(new THREE.Matrix4().makeScale(WidthInMM/gWidth,HeightInMM/gHeight,ThickInMM/gThick));
+            // centre mesh
+            toGeometry.center();
+            // Place on floor
+            toGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, ThickInMM*vertexPixelRatio / 2));
+        }
         // add a base
         if (baseDepth !== 0) {
             var baseThickness=borderThicknessInMM;
@@ -815,6 +835,8 @@ LITHO.LithoBox.prototype = {
             lithoBase.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0 - (HeightInMM-baseThickness)*vertexPixelRatio / 2, (baseDepth * vertexPixelRatio) / 2));
             toGeometry.merge(lithoBase);
             
+        }
+        if ((curve!==0)||(baseDepth !== 0)) {
             // rotate for vertical printing if there's a base
             toGeometry.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 2));
             toGeometry.center();
