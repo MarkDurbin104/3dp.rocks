@@ -34,36 +34,34 @@ THE SOFTWARE.
         <script src="js/three/controls/NormalControls.js"></script>
         <script src="js/FileSaver.js"></script>
         <script src="js/jed.js"></script>
-        <!-- // uncomment your locale -->
+        <!-- // uncomment your locale.js script
         <script src="locales/nl.js"></script>
-        <!-- -->
+        -->
         <script>
-        //instantiate the catalog you want to use
-        var nlCatalog = lang_nl;
-        var i18n = new Jed(nlCatalog);
+        //var nlCatalog = lang_nl;
         var enCatalog = {
-        	// output from the .po conversion
-			locale_data : {
-			    "lithophane" : {
-			      "" : {
-			        "domain" : "lithophane",
-			        "lang"   : "en",
-			        "plural_forms" : "nplurals=2; plural=(n != 1);"
-			      },
-			      // no keys present in english, just dummy "some key" : [ "some value"]
-		  		//"Image to Lithophane": ["Image to Lithophane" ], 
-			    },
-			},
-			"domain" : "lithophane",
-		  	// This callback is called when a key is missing
-		  	"missing_key_callback" : function(key) {
-		    	// Do something with the missing key
-		    	// e.g. send key to web service or
-		    	return key;
-		    	//console.error(key);
-		  	},
+            // output from the .po conversion
+            locale_data : {
+                "lithophane" : {
+                  "" : {
+                    "domain" : "lithophane",
+                    "lang"   : "en",
+                    "plural_forms" : "nplurals=2; plural=(n != 1);"
+                  },
+                  // no keys present in english! 
+                },
+            },
+            "domain" : "lithophane",
+              // This callback is called when a key is missing
+              "missing_key_callback" : function(key) {
+                // Do something with the missing key
+                return key;
+                //console.error(key);
+              },
         };
-        //var i18n = new Jed(enCatalog);
+        //instantiate the catalog you want to use
+        //var i18n = new Jed(nlCatalog);
+        var i18n = new Jed(enCatalog);
         </script>
         <script>
             // LITHO_StatusMessages and LITHO_InputRanges must be defined before including main.js
@@ -162,7 +160,7 @@ THE SOFTWARE.
         <div id="droptargetaltbg" style="visibility:hidden">
             <script>document.getElementById("droptargetbg").innerHTML = i18n.gettext("<br><br>Click image<br>to convert<br>and download")
             </script></div>
-    	<div id="droptarget"      ></div>    
+        <div id="droptarget"      ></div>    
         <script>
             var lithophane=new LITHO.Lithophane();
             lithophane.initPage();
