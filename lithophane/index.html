@@ -33,19 +33,49 @@ THE SOFTWARE.
         <script src="js/three/three.min.js"></script>
         <script src="js/three/controls/NormalControls.js"></script>
         <script src="js/FileSaver.js"></script>
+        <script src="js/jed.js"></script>
+        <!-- // uncomment your locale.js script
+        <script src="locales/nl.js"></script>
+        -->
+        <script>
+        //var nlCatalog = lang_nl;
+        var enCatalog = {
+            // output from the .po conversion
+            locale_data : {
+                "lithophane" : {
+                  "" : {
+                    "domain" : "lithophane",
+                    "lang"   : "en",
+                    "plural_forms" : "nplurals=2; plural=(n != 1);"
+                  },
+                  // no keys present in english! 
+                },
+            },
+            "domain" : "lithophane",
+              // This callback is called when a key is missing
+              "missing_key_callback" : function(key) {
+                // Do something with the missing key
+                return key;
+                //console.error(key);
+              },
+        };
+        //instantiate the catalog you want to use
+        //var i18n = new Jed(nlCatalog);
+        var i18n = new Jed(enCatalog);
+        </script>
         <script>
             // LITHO_StatusMessages and LITHO_InputRanges must be defined before including main.js
             var LITHO_StatusMessages = {
-                loading:     'Loading...'                   ,
-                s1Processing:'2D processing...'             ,
-                vProcessing: 'Processing Vectors...'        ,
-                fProcessing: 'Processing Faces...'          ,
-                sProcessing: 'Processing Surface...'        ,
-                cvNormals:   'Computing Vertex Normals...'  ,
-                cfNormals:   'Computing Face Normals...'    ,
-                aScene:      'Adding to scene...'           ,
-                createSTL:   'Creating STL file...'         , 
-                download:    'Downloading...'
+                loading:     i18n.gettext('Loading...')                   ,
+                s1Processing:i18n.gettext('2D processing...')             ,
+                vProcessing: i18n.gettext('Processing Vectors...')        ,
+                fProcessing: i18n.gettext('Processing Faces...')          ,
+                sProcessing: i18n.gettext('Processing Surface...')        ,
+                cvNormals:   i18n.gettext('Computing Vertex Normals...')  ,
+                cfNormals:   i18n.gettext('Computing Face Normals...')    ,
+                aScene:      i18n.gettext('Adding to scene...')           ,
+                createSTL:   i18n.gettext('Creating STL file...')         , 
+                download:    i18n.gettext('Downloading...')
             };
             var LITHO_InputRanges = {
                 maximumSize:     {name:'maximumSize'    , lower:1   , upper:1000  ,startval:100   },
@@ -63,44 +93,74 @@ THE SOFTWARE.
     <body>  
         <div id="inputs">
             <img id="logo" src="images/logo.png" alt="NestedCube Logo">
-            <div id="heading">Image to Lithophane</div>
-            <p id="maximumSizePrompt"     >Max Size (MM):       <input id="maximumSize"     type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="thicknessPrompt"       >Thickness (MM):      <input id="thickness"       type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="borderThickPrompt"     >Border (MM):         <input id="borderThick"     type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="minLayerPrompt"        >Thinnest layer (MM): <input id="minLayer"        type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="vectorsPerPixelPrompt" >Vectors per Pixel:   <input id="vectorsPerPixel" type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="baseDepthPrompt"       >Base/Stand depth:    <input id="baseDepth"       type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="curvePrompt"           >Curve:    
+            <div id="heading">
+                <script>document.getElementById("heading").innerHTML = i18n.gettext("Image to Lithophane")
+                </script></div>
+            <p id="maximumSizePrompt"     >
+                <script>document.getElementById("maximumSizePrompt").innerHTML = i18n.gettext("Max Size (MM):")
+                </script>
+                <input id="maximumSize"     type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="thicknessPrompt"       >
+                <script>document.getElementById("thicknessPrompt").innerHTML = i18n.gettext("Thickness (MM):")
+                </script>
+                <input id="thickness"       type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="borderThickPrompt"     >
+                <script>document.getElementById("borderThickPrompt").innerHTML = i18n.gettext("Border (MM):")
+                </script>
+                <input id="borderThick"     type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="minLayerPrompt"        >
+                <script>document.getElementById("minLayerPrompt").innerHTML = i18n.gettext("Thinnest layer (MM):")
+                </script>
+                <input id="minLayer"        type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="vectorsPerPixelPrompt" >
+                <script>document.getElementById("vectorsPerPixelPrompt").innerHTML = i18n.gettext("Vectors per Pixel:")
+                </script>
+                <input id="vectorsPerPixel" type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="baseDepthPrompt"       >
+                <script>document.getElementById("baseDepthPrompt").innerHTML = i18n.gettext("Base/Stand depth:")
+                </script>
+                <input id="baseDepth"       type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
+            <p id="curvePrompt"           >
+                <script>document.getElementById("curvePrompt").innerHTML = i18n.gettext("Curve:")
+                </script>
                 <select id="curve"  onchange="lithophane.updateValues(event);" >
-                    <option value="0"  > Flat             </option>
-                    <option value="-30" > 30 degree inner</option>
-                    <option value="-45" > 45 degree inner</option>
-                    <option value="-90" > 90 degree inner</option>
-                    <option value="-120">120 degree inner</option>
-                    <option value="-135">135 degree inner</option>
-                    <option value="-180">180 degree inner</option>
-                    <option value="-270">270 degree inner</option>
-                    <option value="-360">360 degree inner</option>
-                    <option value="30" > 30 degree outer</option>
-                    <option value="45" > 45 degree outer</option>
-                    <option value="90" > 90 degree outer</option>
-                    <option value="120">120 degree outer</option>
-                    <option value="135">135 degree outer</option> 
-                    <option value="180">180 degree outer</option>
-                    <option value="270">270 degree outer</option>
-                    <option value="360">360 degree outer</option>
+                    <option value="0"    id="curve000"><script>document.getElementById("curve000").innerHTML = i18n.gettext("Flat")</script></option>
+                    <option value="-30"  id="curvem30"><script>document.getElementById("curvem30").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree inner"), 30)</script></option>
+                    <option value="-45"  id="curvem45"><script>document.getElementById("curvem45").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree inner"), 45)</script></option>
+                    <option value="-90"  id="curvem90"><script>document.getElementById("curvem90").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree inner"), 90)</script></option>
+                    <option value="-120" id="curvem120"><script>document.getElementById("curvem120").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree inner"), 120)</script></option>
+                    <option value="-135" id="curvem135"><script>document.getElementById("curvem135").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree inner"), 135)</script></option>
+                    <option value="-180" id="curvem180"><script>document.getElementById("curvem180").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree inner"), 180)</script></option>
+                    <option value="-270" id="curvem270"><script>document.getElementById("curvem270").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree inner"), 270)</script></option>
+                    <option value="-360" id="curvem360"><script>document.getElementById("curvem360").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree inner"), 360)</script></option>
+                    <option value="30"   id="curvep30"><script>document.getElementById("curvep30").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree outer"), 30)</script></option>
+                    <option value="45"   id="curvep45"><script>document.getElementById("curvep45").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree outer"), 45)</script></option>
+                    <option value="90"   id="curvep90"><script>document.getElementById("curvep90").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree outer"), 90)</script></option>
+                    <option value="120"  id="curvep120"><script>document.getElementById("curvep120").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree outer"), 120)</script></option>
+                    <option value="135"  id="curvep135"><script>document.getElementById("curvep135").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree outer"), 135)</script></option> 
+                    <option value="180"  id="curvep180"><script>document.getElementById("curvep180").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree outer"), 180)</script></option>
+                    <option value="270"  id="curvep270"><script>document.getElementById("curvep270").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree outer"), 270)</script></option>
+                    <option value="360"  id="curvep360"><script>document.getElementById("curvep360").innerHTML = Jed.sprintf(i18n.gettext("%1$d degree outer"), 360)</script></option>
               </select> 
             </p>
 
-            <p id="reFlipPrompt"          >Don't Flip X Axis:   <input id="reFlip"          type="checkbox"          onchange="lithophane.updateValues(event);" > </p>
+            <p id="reFlipPrompt"          >
+                <script>document.getElementById("reFlipPrompt").innerHTML = i18n.gettext("Don't Flip X Axis:")
+                </script>
+                <input id="reFlip"          type="checkbox"          onchange="lithophane.updateValues(event);" > </p>
             <canvas   id="outputcanvas"  > </canvas>
             <progress id="progressBar"   max="100" value="0" style="visibility:hidden" ></progress>
             <p        id="progressState" > </p>
         </div>
         <div id="threedcanvas"    > </div>  
-        <div id="droptargetbg"    ><br><br>Drop images here.<br>Then click an image to convert and download<br>WebGL only, sorry if your browser doesn't support it...</div>    
-        <div id="droptargetaltbg" style="visibility:hidden"><br><br>click image<br>to convert<br>and download</div>
-    	<div id="droptarget"      ></div>    
+        <div id="droptargetbg"    >
+            <script>document.getElementById("droptargetbg").innerHTML = i18n.gettext("<br><br>Drop images here.<br>Then click an image to convert and download<br>WebGL only, sorry if your browser doesn't support it...")
+            </script>
+        </div>    
+        <div id="droptargetaltbg" style="visibility:hidden">
+            <script>document.getElementById("droptargetaltbg").innerHTML = i18n.gettext("<br><br>Click image<br>to convert<br>and download")
+            </script></div>
+        <div id="droptarget"      ></div>    
         <script>
             var lithophane=new LITHO.Lithophane();
             lithophane.initPage();
