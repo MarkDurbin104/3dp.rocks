@@ -1,6 +1,11 @@
 <!DOCTYPE html charset="UTF-8">
 <html ng-app="lithoApp"  ng-controller="LithoAppController as lithoapp" resize>
     <head> 
+        <script> 
+            // modify the following line to change site text for your locale
+            // look in the data folder for examples in English and Italian.
+            var localeFile='layout.json';
+        </script>
         <style> .ng-cloak { display: none; } </style>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title ng-bind-template="{{lithoapp.getTitle()}}"></title>

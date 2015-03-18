@@ -64,7 +64,7 @@
             }
         }
         
-        $http.get('data/layout.json').success(function(data) {
+        $http.get('data/'+localeFile).success(function(data) {
             $scope.layout = data;
             $scope.settings=$scope.layout.tabs[2].pages;
             for (var i=0,il=$scope.settings.length;i<il;i++) {
