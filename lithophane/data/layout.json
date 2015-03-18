@@ -1,0 +1,115 @@
+{
+    "appTitle"   : "Image to Lithophane",
+    "appLogo"    : "images/logo.png",
+    "textMessages" : {
+        "loading"        : "Loading...",
+        "s1Processing"   : "2D processing...",
+        "vProcessing"    : "Processing Vectors...",
+        "fProcessing"    : "Processing Faces...",
+        "sProcessing"    : "Processing Surface...",
+        "cvNormals"      : "Computing Vertex Normals...",
+        "cfNormals"      : "Computing Face Normals...",
+        "aScene"         : "Adding to scene...",
+        "createSTL"      : "Creating STL file...",
+        "download"       : "Downloading...",
+        "WebGLNeeded"    : "WebGL support required",
+        "ASCIIdownload"  : "ASCII Download...",
+        "Selected"       : "Current Image",
+        "selectfiles"    : "Select files",
+        "orDragDrop"     : "Or drag and drop files below",
+        "dropHere"       : "Drop files here",
+        "processedFiles" : "Loaded files:"
+    },
+    "modelForms" : [
+        { "name":"flat"     ,"title":"Flat"                 , "selected":"true" , "imageURL":"images/formthumbs/form_flat.png"     },
+        { "name":"inner"    ,"title":"Inner Curve"          , "selected":"false", "imageURL":"images/formthumbs/form_inner.png"     },
+        { "name":"outer"    ,"title":"Outer Curve"          , "selected":"false", "imageURL":"images/formthumbs/form_outer.png"     },
+        { "name":"cylinder" ,"title":"Solid Cylinder"       , "selected":"false", "imageURL":"images/formthumbs/form_cylinder.png"  },
+        { "name":"pillow"   ,"title":"Rectangular Pillow"   , "selected":"false", "imageURL":"images/formthumbs/form_pillow.png"    },
+        { "name":"dometop"  ,"title":"Dome - Image on Top"  , "selected":"false", "imageURL":"images/formthumbs/form_dome_top.png"  },
+        { "name":"domeside" ,"title":"Dome - Image on Side" , "selected":"false", "imageURL":"images/formthumbs/form_dome_side.png" },
+        { "name":"heart"    ,"title":"Heart"                , "selected":"false", "imageURL":"images/formthumbs/form_heart.png"     }
+    ],
+    "tabs"  :   [
+        {   "name"     : "Images",
+            "title"    : "Images",
+            "hint"     : "Select Image files"
+        },
+        {   "name"     : "Model",
+            "title"    : "3D View",
+            "hint"     : "View model before downloading"
+        },
+        {   "name"     : "Settings",
+            "pages"    : [
+                {   "name" : "model",
+                    "title": "Model Settings",
+                    "hint" : "Set model parameters",
+                    "values": [
+                        {   "type":"range", "name": "maxOutputDimensionInMM", "title": "Maximum Size (MM)"  , "minVal":   1  , "maxVal": 1000, "step":  1  , "value": 100   },
+                        {   "type":"range", "name": "actualThicknessInMM"   , "title": "Thickness (MM)"     , "minVal":   1  , "maxVal":   50, "step":  0.1, "value":   3   },
+                        {   "type":"range", "name": "borderThicknessInMM"   , "title": "Border (MM)"        , "minVal":   0  , "maxVal":   50, "step":  0.1, "value":   0   },
+                        {   "type":"range", "name": "minThicknessInMM"      , "title": "Thinnest Layer (MM)", "minVal":   0.1, "maxVal":  100, "step":  0.1, "value":   0.8 },
+                        {   "type":"range", "name": "vertexPixelRatio"      , "title": "Vectors Per Pixel"  , "minVal":   1  , "maxVal":   10, "step":  1  , "value":   4   },
+                        {   "type":"range", "name": "baseDepth"             , "title": "Base/Stand Depth"   , "minVal": -50  , "maxVal":   50, "step":  1  , "value":   0   },
+                        {   "type":"range", "name": "curve"                 , "title": "Curve"              , "minVal":   0  , "maxVal":  360, "step": 10  , "value":   0   }
+                    ]
+                },
+                {   "name" : "image",
+                    "title": "Image Settings",
+                    "hint" : "Set image parameters",
+                    "values" : [
+                        {   "type":"range", "name": "positive"      , "title": "Positive Image"   , "minVal": 0, "maxVal":  1, "step": 1, "value": 1, "onState": "Negative Image"},
+                        {   "type":"range", "name": "mirror"        , "title": "Mirror Image Off" , "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "Mirror Image On"},
+                        {   "type":"range", "name": "flip"          , "title": "Flip Image Off"   , "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "Flip Image On"  },
+                        {   "type":"range", "name": "refresh"       , "title": "Manual Refresh"   , "minVal": 0, "maxVal":  1, "step": 1, "value": 1, "onState": "Refresh on Image Click" },
+                        {   "type":"range", "name": "repeatX"       , "title": "Repeat X Count"   , "minVal": 1, "maxVal": 50, "step": 1, "value": 1 },
+                        {   "type":"range", "name": "repeatY"       , "title": "Repeat Y Count"   , "minVal": 1, "maxVal": 50, "step": 1, "value": 1 },
+                        {   "type":"range", "name": "mirrorRepeat"  , "title": "Mirror Repeat Off", "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "Mirror Repeat On"},
+                        {   "type":"range", "name": "flipRepeat"    , "title": "Flip Repeat Off"  , "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "Flip Repeat On"}
+                    ]
+                },
+                {   "name" : "download",
+                    "title": "Download Settings",
+                    "hint" : "Set download parameters",
+                    "values" : [
+                        {   "type":"range", "name": "stlformat"   , "title": "Binary STL", "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "ASCII STL"  },
+                        {   "type":"range", "name": "autodownload", "title": "Manual"    , "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "On Refresh" }
+                    ]
+                },
+                {   "name" : "help",
+                    "title": "Help",
+                    "hint" : "Some quick tips:",
+                    "values" : [
+                        {   "type":"para", "title": "Workflow"             , "value": "Pick an image, set Image parameters and Model parameters. Then refresh view to see the results. If autodownload is set, the STL will download each time you refresh."  },
+                        {   "type":"para", "title": "Max Size"             , "value": "The largest X or Y dimension of the output lithophane - X if original image wide, Y if high."},
+                        {   "type":"para", "title": "Thickness"            , "value": "The maximum Z dimension of the output lithophane."},
+                        {   "type":"para", "title": "Border"               , "value": "The thickness of the border around the edge."},
+                        {   "type":"para", "title": "Thinnest layer"       , "value": "This is the minumum layer thickness (for the brightest pixels in the image)."},
+                        {   "type":"para", "title": "Vectors per pixel"    , "value": "Each of the pixels in the image is translated into a number of 3D points on the surface of the lithophane, the larger this number, the more detailed the output (and the larger the STL file/slower the processing) 2 is a good value for this you can go up to 5, but it will take time and use memory."},
+                        {   "type":"para", "title": "Base/Stand depth"     , "value": "A small stand on the base for when printing vertically. Positive number for base coming forward, negative for backward."},
+                        {   "type":"para", "title": "Curve"                , "value": "Number of degrees to curve the surface (for the curved forms)."},
+                        {   "type":"para", "title": "Positive Image"       , "value": "Set to Positive Image, lighter areas of the original image will be thinner in the output and the thicker if set to Negative Image."},
+                        {   "type":"para", "title": "Mirror Image"         , "value": "Set to Mirror Image, the image will be mirrored about the X axis (for rear viewing), otherwise the output will be in the same orientation as the original image."},
+                        {   "type":"para", "title": "Flip Image"           , "value": "Set to File Image, the image will be fliped about the Y axis, otherwise the output will be in the same orientation as the original image."},
+                        {   "type":"para", "title": "Manual Refresh"       , "value": "Set to Manual Refresh to only recreate the model when the 'Refresh' button is pressed, set to Automatic if you'd like the model to refresh when you select the image"},
+                        {   "type":"para", "title": "Repeat X Count"       , "value": "Set to repeat the image in the X direction prior to creating the output."},
+                        {   "type":"para", "title": "Repeat Y Count"       , "value": "Set to repeat the image in the Y direction prior to creating the output."},
+                        {   "type":"para", "title": "Mirror Repeat"        , "value": "Set to alternately mirror the image when the X Repeat setting is being used."},
+                        {   "type":"para", "title": "Flip Repeat"          , "value": "Set to alternately flip the image when the Y Repeat setting is being used."},
+                        {   "type":"para", "title": "Binary STL"           , "value": "Set to use a binary (smaller and faster) STL file format, otherwise use ASCII where needed for compatibility with other software."},
+                        {   "type":"para", "title": "Manual Download"      , "value": "If set to Automatic, the STL file will download each time you refresh the model, if set to Manula, the download will only happen when you press the download button."},
+                        {   "type":"para", "title": "Form"                 , "value": "Select the form of the output model from the following types"},
+                        {   "type":"para", "title": "Flat"                 , "value": "A rectangular model with the image impressed in one face. Curve setting is ignoed"},
+                        {   "type":"para", "title": "Inner Curve"          , "value": "A curved rectangular model with the image impressed on the inner face. Use curve setting to set the number of degrees in the arc."},
+                        {   "type":"para", "title": "Outer Curve"          , "value": "A curved rectangular model with the image impressed on the outer face. Use curve setting to set the number of degrees in the arc."},
+                        {   "type":"para", "title": "Solid Cylinder"       , "value": "A cylindrical model with the image impressed on the curved face."},
+                        {   "type":"para", "title": "Rectangular Pillow"   , "value": "A rectangular pillow model with the image impressed on the top face"},
+                        {   "type":"para", "title": "Dome - Image on Top"  , "value": "A circular dome model with the image impressed as if from above the dome"},
+                        {   "type":"para", "title": "Dome - Image on Side" , "value": "A circular dome model with the image impressed as if from the edge of the dome with the image wrapping the perimeter of the dome and the top of the image meeting in the centre"},
+                        {   "type":"para", "title": "Heart"                , "value": "A heart shaped model with the image impressed on the curved faces"}
+                    ]
+                }
+            ]
+        }
+    ]
+}

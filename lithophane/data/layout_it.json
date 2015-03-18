@@ -1,0 +1,118 @@
+{
+    "appTitle" : "Image to litofania",
+    "appLogo"  : "images/logo.png",
+    "textMessages"  : {
+        "loading"       : "Loading ...",
+        "s1Processing"  : "lavorazione 2D ...",
+        "vProcessing"   : "Elaborazione vettori ...",
+        "fProcessing"   : "Elaborazione Faces ...",
+        "sProcessing"   : "Elaborazione di superficie ...",
+        "cvNormals"     : "Computing Vertex Normali ...",
+        "cfNormals"     : "Informatica normali delle facce ...",
+        "aScene"        : "Aggiungendo scena ...",
+        "createSTL"     : "Creazione di file STL ...",
+        "download"      : "Downloading ...",
+        "WebGLNeeded"   : "il supporto WebGL richiesto",
+        "ASCIIdownload" : "ASCII Scarica ...",
+        "Selected"      : "Immagine corrente",
+        "selectfiles"   : "Selezionare file",
+        "orDragDrop"    : "o trascinare e rilasciare i file sotto",
+        "dropHere"      : "Drop files qui",
+        "processedFiles": "file caricati:",
+        "Refresh"       : "rinfrescare",
+        "Download"      : "Download"
+    },
+    "modelForms": [
+        {"name": "flat",     "title": "Piano",                              "selected": "true",  "imageURL": "images/formthumbs/form_flat.png"},
+        {"name": "inner",    "title": "Curva interiore",                    "selected": "false", "imageURL": "images/formthumbs/form_inner.png"},
+        {"name": "outer",    "title": "Curva esterno",                      "selected": "false", "imageURL": "images/formthumbs/form_outer.png"},
+        {"name": "cylinder", "title": "Solid cilindro",                     "selected": "false", "imageURL": "images/formthumbs/form_cylinder.png"},
+        {"name": "pillow",   "title": "Rettangolare Pillow",                "selected": "false", "imageURL": "images/formthumbs/form_pillow.png"},
+        {"name": "dometop",  "title": "Dome - immagine in primo piano",     "selected": "false", "imageURL": "images/formthumbs/form_dome_top.png"},
+        {"name": "domeside", "title": "Dome - immagine sul lato",           "selected": "false", "imageURL": "images/formthumbs/form_dome_side.png"},
+        {"name": "heart",    "title": "Cuore",                              "selected": "false", "imageURL": "images/formthumbs/form_heart.png"}
+    ],
+    "tabs": [
+        {   "name": "Immagini",
+            "title": "Immagini",
+            "hint": "Selezionare i file di immagine"
+        },
+        {   "name": "Modello",
+            "title": "3D View",
+            "hint": "Visualizza il modello prima di scaricare"
+        },
+        {   "name": "Impostazioni",
+            "pages": [
+                {   "name": "modello",
+                    "title": "Impostazioni di modello",
+                    "hint": "Imposta parametri del modello",
+                    "values": [
+                        {"type": "range", "name": "maxOutputDimensionInMM", "title": "Dimensione massima (MM)",     "minVal": 1  , "maxVal": 1000, "step":  1  , "value": 100  },
+                        {"type": "range", "name": "actualThicknessInMM",    "title": "Spessore (MM)",               "minVal": 1  , "maxVal":   50, "step":  0.1, "value":   3  },
+                        {"type": "range", "name": "borderThicknessInMM",    "title": "Confine (MM)",                "minVal": 0  , "maxVal":   50, "step":  0.1, "value":   0  },
+                        {"type": "range", "name": "minThicknessInMM",       "title": "Sottile strato (MM)",         "minVal": 0.1, "maxVal":  100, "step":  0.1, "value":   0.8},
+                        {"type": "range", "name": "vertexPixelRatio",       "title": "Vettori Per Pixel",           "minVal": 1  , "maxVal":   10, "step":  1  , "value":   4  },
+                        {"type": "range", "name": "baseDepth",              "title": "Base di profondità / stand",  "minVal": -50, "maxVal":   50, "step":  1  , "value":   0  },
+                        {"type": "range", "name": "curve",                  "title": "Curva",                       "minVal": 0  , "maxVal":  360, "step": 10  , "value":   0  }
+                    ]
+                },
+                {   "name": "immagine",
+                    "title": "Impostazioni immagine",
+                    "hint": "Imposta parametri dell'immagine",
+                    "values": [
+                        {"type": "range", "name": "positive",       "title": "immagine positiva"    , "minVal": 0, "maxVal":  1, "step": 1, "value": 1, "onState": "Negativo"},
+                        {"type": "range", "name": "mirror",         "title": "Specchio Immagine Off", "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "Immagine speculare On"},
+                        {"type": "range", "name": "flip",           "title": "Image Flip Off"       , "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "Image Flip On"},
+                        {"type": "range", "name": "refresh",        "title": "Refresh Manual"       , "minVal": 0, "maxVal":  1, "step": 1, "value": 1, "onState": "Aggiorna sull'immagine Clicca"},
+                        {"type": "range", "name": "repeatX",        "title": "Repeat X Conte"       , "minVal": 1, "maxVal": 50, "step": 1, "value": 1 },
+                        {"type": "range", "name": "repeatY",        "title": "Ripeti Conte Y"       , "minVal": 1, "maxVal": 50, "step": 1, "value": 1 },
+                        {"type": "range", "name": "mirrorRepeat",   "title": "Specchio Repeat Off"  , "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "Specchio Repeat On"},
+                        {"type": "range", "name": "flipRepeat",     "title": "Flip Repeat Off"      , "minVal": 0, "maxVal":  1, "step": 1, "value": 0, "onState": "Flip Repeat On"}
+                    ]
+                },
+                {   "name": "download",
+                    "title": "Impostazioni Download",
+                    "hint": "Impostare i parametri di download",
+                    "values": [
+                        {"type": "range", "name": "stlformat",    "title": "STL Binary", "minVal": 0, "maxVal": 1, "step": 1, "value": 0, "onState": "STL ASCII"},
+                        {"type": "range", "name": "autodownload", "title": "Manuale"   , "minVal": 0, "maxVal": 1, "step": 1, "value": 1, "onState": "On Refresh"}
+                    ]
+                },
+                {   "name": "help",
+                    "title": "Aiuto",
+                    "hint": "Alcuni suggerimenti rapidi:",
+                    "values": [
+                        {"type": "para", "title": "Workflow",                       "value": "Scegli un'immagine, parametri immagine set e parametri del modello. Poi aggiornare la vista per vedere i risultati. Se lo scaricamento automatico è impostato, il STL scaricherà ogni volta che si aggiorna."},
+                        {"type": "para", "title": "Max Size",                       "value": "Il più grande X o la dimensione Y del litofania uscita - X se a livello dell'immagine originale, Y se alto."},
+                        {"type": "para", "title": "Spessore",                       "value": "La dimensione massima Z del litofania uscita."},
+                        {"type": "para", "title": "Confine",                        "value": "Lo spessore del bordo intorno al bordo."},
+                        {"type": "para", "title": "Strato sottile",                 "value": "Questo è lo spessore minimo dello strato (per i pixel più luminosi nell'immagine)"},
+                        {"type": "para", "title": "Vettori per pixel",              "value": "Ciascuno dei pixel dell'immagine si traduce in un numero di punti 3D sulla superficie del litofania, maggiore è il numero, il più dettagliato l'uscita (e le dimensioni del file STL / lento trattamento) 2 è un buon rapporto questo si può arrivare fino a 5, ma ci vorrà del tempo e l'uso della memoria."},
+                        {"type": "para", "title": "Base di profondità / stand",     "value": "Un piccolo stand alla base per quando la stampa in verticale. Numero positivo per la base a venire in avanti, negativo per all'indietro."},
+                        {"type": "para", "title": "Curva",                          "value": "Numero di gradi a superficie curva (per le forme curve)."},
+                        {"type": "para", "title": "Immagine positiva",              "value": "Impostare Immagine positiva, le aree più chiare dell'immagine originale sarà più sottile in uscita e più spesso se impostato su Immagine negativa."},
+                        {"type": "para", "title": "Immagine speculare",             "value": "Impostare Immagine speculare, l'immagine viene specchiata attorno all'asse X (per la visualizzazione posteriore), altrimenti l'uscita sarà lo stesso orientamento dell'immagine originale."},
+                        {"type": "para", "title": "Image Flip",                     "value": "Impostare su flip immagine, l'immagine verrà flipped attorno all'asse Y, altrimenti l'uscita sarà lo stesso orientamento dell'immagine originale."},
+                        {"type": "para", "title": "Aggiornamento manuale",          "value": "Impostare Refresh manuale per ricreare solo il modello quando si preme il tasto 'Aggiorna', impostato su Automatico se si desidera il modello per aggiornare quando si seleziona l'immagine"},
+                        {"type": "para", "title": "Ripeti X Conte",                 "value": "Impostare ripetere l'immagine nella direzione X prima di creare l'uscita."},
+                        {"type": "para", "title": "Ripetere Conte Y",               "value": "Impostare ripetere l'immagine nella direzione Y prima di creare l'uscita."},
+                        {"type": "para", "title": "Specchio Repeat",                "value": "Impostare specchio alternativamente l'immagine quando viene utilizzata l'impostazione X Repeat."},
+                        {"type": "para", "title": "Flip Repeat",                    "value": "Impostare capovolgere alternativamente l'immagine quando si utilizza l'impostazione Repeat Y."},
+                        {"type": "para", "title": "STL Binary",                     "value": "Impostare per utilizzare un binario (più piccolo e più veloce) formato di file STL, altrimenti utilizzare ASCII dove necessario per la compatibilità con altri software."},
+                        {"type": "para", "title": "Download manuale",               "value": "Se è impostato su Automatico, il file STL scaricherà ogni volta che si aggiorna il modello, se impostato su manuale, il download avverrà solo quando si preme il pulsante di download."},
+                        {"type": "para", "title": "Forma",                          "value": "Selezionare la forma del modello di uscita dai seguenti tipi"},
+                        {"type": "para", "title": "Piano",                          "value": "Un modello rettangolare con l'immagine impressa in una faccia. Impostazione della curva viene ignorata"},
+                        {"type": "para", "title": "Curve interno",                  "value": "Un modello curvo rettangolare con l'immagine impressa sulla faccia interna. Utilizzare regolazione della curva per impostare il numero di gradi nell'arco."},
+                        {"type": "para", "title": "Curve esterno",                  "value": "Un modello curvo rettangolare con l'immagine impressa sulla faccia esterna. Utilizzare regolazione della curva per impostare il numero di gradi nell'arco."},
+                        {"type": "para", "title": "Cilindro Solid",                 "value": "Un modello cilindrico con l'immagine impressa sulla faccia curva."},
+                        {"type": "para", "title": "Cuscino rettangolare",           "value": "Un modello cuscino rettangolare con l'immagine impressa sulla faccia superiore"},
+                        {"type": "para", "title": "Dome - immagine in primo piano", "value": "Un modello cupola circolare con l'immagine impressa come se dall'alto cupola"},
+                        {"type": "para", "title": "Dome - immagine sul lato",       "value": "Un modello cupola circolare con l'immagine impressa come se dal bordo della cupola con l'immagine avvolgendo il perimetro della cupola e la parte superiore della riunione immagine al centro"},
+                        {"type": "para", "title": "Cuore",                          "value": "Un modello a forma di cuore con l'immagine impresa sui volti curve"}
+                    ]
+                }
+            ]
+        }
+    ]
+}
+

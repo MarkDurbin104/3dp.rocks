@@ -1,109 +1,44 @@
-<!DOCTYPE html>
-<!--
-The MIT License
-
-Copyright 2015 Mark Durbin.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
--->
-<html>
-    <head>
-        <title>3DP Rocks - Lithophane generator</title>
-        <meta charset="UTF-8">
+<!DOCTYPE html charset="UTF-8">
+<html ng-app="lithoApp"  ng-controller="LithoAppController as lithoapp" resize>
+    <head> 
+        <style> .ng-cloak { display: none; } </style>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="3D printing, Rocks!- Fast Image to Lithophane converter. Free, Offline browser based utility">
-        <link rel="stylesheet" href="css/style.css"> 
+        <title ng-bind-template="{{lithoapp.getTitle()}}"></title>
+        <meta name="description" content="3D printing, Rocks!- Fast Image to Lithophane converter. Free, Offline, mobile and browser based utility">
+ 
+        <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css">
+        <link rel="stylesheet" href="css/style.css">
         <script src="js/three/three.min.js"></script>
-        <script src="js/three/controls/NormalControls.js"></script>
+        <script src="js/three/controls/TrackballControls.js"></script>
         <script src="js/FileSaver.js"></script>
-        <script>
-            // LITHO_StatusMessages and LITHO_InputRanges must be defined before including main.js
-            var LITHO_StatusMessages = {
-                loading:     'Loading...'                   ,
-                s1Processing:'2D processing...'             ,
-                vProcessing: 'Processing Vectors...'        ,
-                fProcessing: 'Processing Faces...'          ,
-                sProcessing: 'Processing Surface...'        ,
-                cvNormals:   'Computing Vertex Normals...'  ,
-                cfNormals:   'Computing Face Normals...'    ,
-                aScene:      'Adding to scene...'           ,
-                createSTL:   'Creating STL file...'         , 
-                download:    'Downloading...'
-            };
-            var LITHO_InputRanges = {
-                maximumSize:     {name:'maximumSize'    , lower:1   , upper:1000  ,startval:100   },
-                thickness:       {name:'thickness'      , lower:1   , upper:100   ,startval:5     },
-                borderThick:     {name:'borderThick'    , lower:0   , upper:50    ,startval:0     },
-                minLayer:        {name:'minLayer'       , lower:0.1 , upper:10    ,startval:0.8   },
-                vectorsPerPixel: {name:'vectorsPerPixel', lower:1   , upper:5     ,startval:2     },
-                baseDepth:       {name:'baseDepth'      , lower:-50 , upper:50    ,startval:0     },
-                reFlip:          {name:'reFlip'         , lower:true, upper:false ,startval:false },
-                curve:           {name:'curve'          , lower:-360, upper:360   ,startval:0     }
-            };
-        </script>
         <script src="js/main.js"></script>
+        <script src="js/libs/angular.js/angular.min.js"></script>
+        <script src="js/app.js"></script>
     </head>
-    <body>  
-        <div id="inputs">
-            <img id="logo" src="images/logo.png" alt="NestedCube Logo">
-            <div id="heading">Image to Lithophane</div>
-            <p id="maximumSizePrompt"     >Max Size (MM):       <input id="maximumSize"     type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="thicknessPrompt"       >Thickness (MM):      <input id="thickness"       type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="borderThickPrompt"     >Border (MM):         <input id="borderThick"     type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="minLayerPrompt"        >Thinnest layer (MM): <input id="minLayer"        type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="vectorsPerPixelPrompt" >Vectors per Pixel:   <input id="vectorsPerPixel" type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="baseDepthPrompt"       >Base/Stand depth:    <input id="baseDepth"       type="text"     value="" onchange="lithophane.updateValues(event);" > </p>
-            <p id="curvePrompt"           >Curve:    
-                <select id="curve"  onchange="lithophane.updateValues(event);" >
-                    <option value="0"  > Flat             </option>
-                    <option value="-30" > 30 degree inner</option>
-                    <option value="-45" > 45 degree inner</option>
-                    <option value="-90" > 90 degree inner</option>
-                    <option value="-120">120 degree inner</option>
-                    <option value="-135">135 degree inner</option>
-                    <option value="-180">180 degree inner</option>
-                    <option value="-270">270 degree inner</option>
-                    <option value="-360">360 degree inner</option>
-                    <option value="30" > 30 degree outer</option>
-                    <option value="45" > 45 degree outer</option>
-                    <option value="90" > 90 degree outer</option>
-                    <option value="120">120 degree outer</option>
-                    <option value="135">135 degree outer</option> 
-                    <option value="180">180 degree outer</option>
-                    <option value="270">270 degree outer</option>
-                    <option value="360">360 degree outer</option>
-              </select> 
-            </p>
-
-            <p id="reFlipPrompt"          >Don't Flip X Axis:   <input id="reFlip"          type="checkbox"          onchange="lithophane.updateValues(event);" > </p>
-            <canvas   id="outputcanvas"  > </canvas>
-            <progress id="progressBar"   max="100" value="0" style="visibility:hidden" ></progress>
-            <p        id="progressState" > </p>
+    <body>
+        <div class="container wrapper" ng-controller="TabController as tab" >
+            <div ng-include="'nav-bar.html'"></div>
+            <div ng-include="'images-page.html'"></div>
+            <div ng-include="'view-page.html'" onload="lithoapp.initLithophane();"></div>
+            <div ng-include="'settings-pages.html'"></div>
+            <div class="push" ></div> 
         </div>
-        <div id="threedcanvas"    > </div>  
-        <div id="droptargetbg"    ><br><br>Drop images here.<br>Then click an image to convert and download<br>WebGL only, sorry if your browser doesn't support it...</div>    
-        <div id="droptargetaltbg" style="visibility:hidden"><br><br>click image<br>to convert<br>and download</div>
-    	<div id="droptarget"      ></div>    
+        <script src="js/libs/jquery/jquery.min.js"></script>
+        <script src="js/libs/bootstrap/bootstrap.min.js"></script>
+        <!--Google stuff from here...-->
+        <footer class="footer" >
+            <div class="container" style="margin:0px;border:0px;padding:0px">
+                <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                <div id="footerAd" style="overflow: hidden">
+                    <ins class="adsbygoogle" style="display:inline-block;width:320px;height:100px" data-ad-client="ca-pub-2772589412144601" data-ad-slot="6422024204"></ins>
+                    <script> (adsbygoogle = window.adsbygoogle || []).push({});</script>
+                </div>
+            </div>
+        </footer>
         <script>
-            var lithophane=new LITHO.Lithophane();
-            lithophane.initPage();
+            (function (i, s, o, g, r, a, m) { i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () { (i[r].q = i[r].q || []).push(arguments);
+                    }, i[r].l = 1 * new Date(); a = s.createElement(o), m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m);
+                })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga'); try { ga('create', 'UA-60111279-1', 'auto'); ga('send', 'pageview'); } catch (e) { }
         </script>
     </body>
 </html>

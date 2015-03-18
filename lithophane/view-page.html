@@ -1,0 +1,55 @@
+<style>
+    #threedcanvas {  
+        min-height:300px;  
+        overflow: hidden;
+    }  
+    .formthumb {
+        display: inline-table;
+        width: 140px;
+        margin: 2px;
+    }
+    .isselected {
+        border : 2px solid #F00;
+    }
+    .button{
+        margin:0px auto;
+    }
+    .progress-bar {
+        -webkit-transition : none;
+        -moz-transition : none;
+        -ms-transition : none;
+        -o-transition : none;
+        transition : none;
+    }​
+</style>
+<div ng-show="tab.isCurrent(2)" >
+    <div class="panel panel-default" >
+        <div class="panel-heading"><strong>{{tab.tabTitle(2)}}</strong> <small>{{tab.tabHint(2)}}</small></div>
+        <div class="panel-body" >
+
+            <div class="well" >
+                <div id="threedcanvas" style="height: {{getWindowHeight()+'px'}}"  >     
+                    <canvas id="CompatibilityCanvas"> </canvas>  
+                </div>
+            </div>
+            <div id="viewButtons" >    
+                <button ng-click="lithoapp.triggerRefresh();" class="btn btn-primary pull-left" >Refresh</button>
+                <button ng-click="lithoapp.triggerDownload();" class="btn btn-primary pull-right">Download</button>
+            </div>
+            <div class="progress"  >
+                <div class="progress-bar progress-bar-info  progress-bar-striped active" role="progressbar"  aria-valuenow="{{modelProgress}}"
+                     aria-valuemin="0" aria-valuemax="100" ng-style="{width : ( modelProgress + '%' ) }">
+                    {{modelStatus}}
+                </div>
+            </div>
+            <div class="well" style="overflow-x: auto; overflow-y: hidden;" >
+                <div  style="display: block;height: 100px;width: {{layout.modelForms.length * 145 + 'px'}}" >
+                    <button ng-click="lithoapp.selectform($index);" class="btn formthumb"  ng-class="{ 'btn-primary' :lithoapp.isSelected($index)} " ng-repeat="form in layout.modelForms">
+                        <image style="text-align: center;width: 120px;height: 80px" ng-src="{{lithoapp.formImage($index)}}"  >
+                        <p style="text-align: center;margin: 1px" >{{form.title}}</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div> 
+</div>

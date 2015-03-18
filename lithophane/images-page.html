@@ -1,0 +1,49 @@
+<style>
+    .upload-drop-zone {
+        min-height: 200px;
+        border-width: 2px;
+        margin-bottom: 20px;
+        color: #ccc;
+        border-style: dashed;
+        border-color: #ccc;
+        line-height: 200px;
+        text-align: center;
+        display: block;
+    }
+    .upload-drop-zone.drop {
+        color: #222;
+        border-color: #222;
+    }
+    .progress-bar {
+        -webkit-transition: none;
+        -moz-transition: none;
+        -ms-transition: none;
+        -o-transition: none;
+        transition: none;
+    }​
+</style>                
+
+<div ng-show="tab.isCurrent(1)" >
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>{{tab.tabTitle(1)}}</strong> <small>{{tab.tabHint(1)}}</small></div>
+        <div class="panel-body">
+            <h4 >{{lithoapp.textMessage('selectfiles')}}</h4> 
+            <input type="file" id="js-upload-files" multiple onchange="angular.element(this).scope().fileDrop(this.files);">
+            <h4>{{lithoapp.textMessage('orDragDrop')}}</h4>
+            <div class="well" style="overflow-x: auto; overflow-y: auto;" >
+                <div class="upload-drop-zone" id="droptarget">{{lithoapp.textMessage('dropHere')}}</div>
+            </div>
+
+            <div class="progress">
+                <div class="progress-bar progress-bar-info  progress-bar-striped active" role="progressbar"  aria-valuenow="{{loadProgress}}" aria-valuemin="0" aria-valuemax="100" ng-style="{width : ( loadProgress + '%' ) }">{{loadStatus}}</div>
+            </div>
+            <div class="js-upload-finished">
+                <h3>{{lithoapp.textMessage('processedFiles')}}</h3>
+                <div class="list-group">
+                    <a ng-repeat="file in files" href="#" ng-click="lithoapp.fileClicked(tab,file)" class="list-group-item list-group-item-success">
+                        <span class="badge alert-success pull-right">{{lithoapp.fileIsSelected(file)?lithoapp.statusMessage('Selected'):''}}</span>{{file.name}}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
