@@ -1,0 +1,121 @@
+# Dutch translations for PACKAGE package.
+# Copyright (C) 2015 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# benny <benny.malengier@gmail.com>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-01-30 20:49+0100\n"
+"PO-Revision-Date: 2015-01-29 23:53+0100\n"
+"Last-Translator: benny <benny.malengier@gmail.com>\n"
+"Language-Team: Dutch\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: index.html:71
+msgid "Loading..."
+msgstr "Laden..."
+
+#: index.html:72
+msgid "2D processing..."
+msgstr "2D verwerking..."
+
+#: index.html:73
+msgid "Processing Vectors..."
+msgstr "Vectoren verwerken..."
+
+#: index.html:74
+msgid "Processing Faces..."
+msgstr "Zijden verwerken..."
+
+#: index.html:75
+msgid "Processing Surface..."
+msgstr "Oppervlakken verwerken..."
+
+#: index.html:76
+msgid "Computing Vertex Normals..."
+msgstr "Berekenen Vector Normalen..."
+
+#: index.html:77
+msgid "Computing Face Normals..."
+msgstr "Berekenen Zijde Normalen..."
+
+#: index.html:78
+msgid "Adding to scene..."
+msgstr "Toevoegen aan de canvas..."
+
+#: index.html:79
+msgid "Creating STL file..."
+msgstr "STL bestand aanmaken..."
+
+#: index.html:80
+msgid "Downloading..."
+msgstr "Downloading..."
+
+#: index.html:99
+msgid "Image to Lithophane"
+msgstr "Foto naar Lithophane"
+
+#: index.html:102
+msgid "Max Size (MM):"
+msgstr "Max Grootte (MM):"
+
+#: index.html:106
+msgid "Thickness (MM):"
+msgstr "Dikte (MM):"
+
+#: index.html:110
+msgid "Border (MM):"
+msgstr "Rand (MM):"
+
+#: index.html:114
+msgid "Thinnest layer (MM):"
+msgstr "Dunste laag (MM):"
+
+#: index.html:118
+msgid "Vectors per Pixel:"
+msgstr "Interpolatiegraad tussen Pixels:"
+
+#: index.html:122
+msgid "Base/Stand depth:"
+msgstr "Basis/Stand diepte:"
+
+#: index.html:126
+msgid "Curve:"
+msgstr "Kromming:"
+
+#: index.html:129
+msgid "Flat"
+msgstr "Plat"
+
+#: index.html:130 index.html:131 index.html:132 index.html:133 index.html:134
+#: index.html:135 index.html:136 index.html:137
+msgid "%1$d degree inner"
+msgstr "%1$d graden binnen"
+
+#: index.html:138 index.html:139 index.html:140 index.html:141 index.html:142
+#: index.html:143 index.html:144 index.html:145
+msgid "%1$d degree outer"
+msgstr "%1$d graden buiten"
+
+#: index.html:150
+msgid "Don't Flip X Axis:"
+msgstr "X-As Niet Omflippen"
+
+#: index.html:159
+msgid ""
+"<br><br>Drop images here.<br>Then click an image to convert and "
+"download<br>WebGL only, sorry if your browser doesn't support it..."
+msgstr ""
+"<br><br>Sleep foto's hier.<br>Klik daarna een foto aan om hem converteren en "
+"te downloaden<br>Enkel via WebGL, sorry als je browser dat niet "
+"ondersteunt..."
+
+#: index.html:163
+msgid "<br><br>Click image<br>to convert<br>and download"
+msgstr "<br><br>Klik op de foto<br>om hem te converteren<br>en te downloaden."
